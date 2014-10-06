@@ -1,0 +1,19 @@
+﻿.ac-block-ui-message {
+	background-color: black;
+	top: 40%;
+	padding: 10px;
+	color: white;
+	border-radius: 4px;
+	position: relative;
+}
+
+.ac-block-ui {
+	z-index: 99999999;
+	position: absolute;
+	background: gray;
+	width: 100%;
+	height: 100%;
+	opacity: .8;
+	text-align: center;
+	font-size: 24pt;
+}

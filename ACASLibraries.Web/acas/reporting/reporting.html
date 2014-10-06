@@ -1,0 +1,24 @@
+﻿<div class="ac-reporting-dialog">
+     <div class="ac-reporting-dialog-header">Download the {{acas.reporting.reportTitle}} Report</div>
+    <div class="ac-reporting-dialog-instructions">Select a file format to download the {{acas.reporting.reportTitle}} report...</div>    
+    <table style="width:100%">
+        <tr>
+            <td align="center">
+                <div class="ac-reporting-dialog-file-format" title="Excel" ng-click="acas.reporting.downloadReport('excel')">
+                    <div class="ac-reporting-dialog-file-format-xls" />
+                </div>
+            </td>
+            <td align="center">
+                <div class="ac-reporting-dialog-file-format" title="PDF" ng-click="acas.reporting.downloadReport('pdf')">
+                    <div class="ac-reporting-dialog-file-format-pdf" />
+                </div>
+            </td>
+        </tr>
+    </table>
+    <div class="ac-reporting-dialog-hint">
+        Please do not leave this screen until your download has completed.
+    </div>
+    <div class="ac-reporting-dialog-cancel" align="center">
+        <button ng-click="$close()">Cancel</button>
+    </div>
+</div>

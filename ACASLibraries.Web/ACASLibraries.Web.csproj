@@ -1,0 +1,122 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <ItemGroup>
+    <Content Include="acas\Acas.Module.js" />
+    <Content Include="acas\acValidation.Service.js" />
+    <Content Include="acas\config.js" />
+    <Content Include="acas\data\data.model.js" />
+    <None Include="acas\data\data.model.test.html" />
+    <Content Include="acas\data\data.model.test.js" />
+    <Content Include="acas\formatting\FormattingFilters.Filter.js" />
+    <Content Include="acas\formatting\FormattingFilters.Filter.test.js" />
+    <Content Include="acas\module.js" />
+    <Content Include="acas\notifications\NotificationDetail.html" />
+    <Content Include="acas\notifications\Notifications.Controller.js" />
+    <Content Include="acas\notifications\Notifications.js" />
+    <Content Include="acas\reporting\acReporting.Service.js" />
+    <Content Include="acas\reporting\images\pdf.png" />
+    <Content Include="acas\reporting\images\xls.png" />
+    <Content Include="acas\reporting\Reporting.Controller.js" />
+    <Content Include="acas\reporting\reporting.css" />
+    <Content Include="acas\reporting\reporting.html" />
+    <Content Include="acas\ui\acDatepicker.Directive.js" />
+    <Content Include="acas\ui\acNumericInput.Directive.js" />
+    <Content Include="acas\ui\block-ui\acBlockUi.css" />
+    <Content Include="acas\ui\block-ui\acBlockUi.Directive.js" />
+    <Content Include="acas\ui\block-ui\acBlockUiManager.Service.js" />
+    <Content Include="acas\utility\acDataCache.Service.js" />
+    <Content Include="acas\utility\acToArray.Filter.js" />
+    <Content Include="acas\utility\utility.js" />
+    <Content Include="lib\angular-mocks.js" />
+    <Content Include="lib\angular.min.js" />
+    <Content Include="Gruntfile.js" />
+    <Content Include="karma.conf.js" />
+    <Content Include="lib\q.js" />
+    <Content Include="README.txt" />
+    <Content Include="acas\utility\utility.test.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="package.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include=".NETFramework,Version=v4.0">
+      <Visible>False</Visible>
+      <ProductName>Microsoft .NET Framework 4 %28x86 and x64%29</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Windows.Installer.4.5">
+      <Visible>False</Visible>
+      <ProductName>Windows Installer 4.5</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="build.bat" />
+    <None Include="clean.bat" />
+    <None Include="deploy.bat" />
+    <None Include="web.config" />
+  </ItemGroup>
+  <PropertyGroup>
+    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
+    <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
+    <ProjectGuid>{F8B34BE7-C088-4BFD-87E0-7B984257D943}</ProjectGuid>
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+    <SccProjectName>SAK</SccProjectName>
+    <SccLocalPath>SAK</SccLocalPath>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccProvider>SAK</SccProvider>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'UAT'">
+    <OutputPath>bin\UAT\</OutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'STAGE'">
+    <OutputPath>bin\STAGE\</OutputPath>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'DEV'">
+    <OutputPath>bin\DEV\</OutputPath>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'QA'">
+    <OutputPath>bin\QA\</OutputPath>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'RELEASE'">
+    <OutputPath>bin\RELEASE\</OutputPath>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+  </PropertyGroup>
+  <Target Name="Build">
+    <Exec Command="$(MSBuildProjectDirectory)\build.bat $(MSBuildProjectDirectory)" />
+    <Exec Command="$(MSBuildProjectDirectory)\deploy.bat $(MSBuildProjectDirectory) $(Configuration) $(BuildNumber)" Condition="$(BuildingInsideVisualStudio) != true" />
+  </Target>
+  <Target Name="Clean">
+    <Exec Command="$(MSBuildProjectDirectory)\clean.bat $(MSBuildProjectDirectory)" />
+  </Target>
+  <Target Name="Rebuild" DependsOnTargets="Clean;Build">
+  </Target>
+</Project>

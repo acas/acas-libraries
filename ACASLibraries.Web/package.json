@@ -1,0 +1,42 @@
+{
+    "name": "acas-libraries",
+    "version": "14.4.0",
+    "description": "Contains common JavaScript code for web apps, especially (but not limited to) angularjs apps",
+    "main": "Gruntfile.js",
+    "keywords": [
+        "ACAS Libraries",
+        "ACAS",
+        "angularjs",
+        "utility functions"
+    ],
+    "repository": { },
+    "author": "American Capital, Ltd",
+    "license": "MIT License",
+    "readme": "README.txt",
+    "devDependencies": {
+        "grunt": "~0.4.5",
+        "grunt-cli": "0.1.13",
+        "load-grunt-tasks": "0.6.0",
+        "npm": "1.4.21",
+        "grunt-bump": "0.0.15",
+        "grunt-contrib-concat": "0.5.0",
+        "grunt-contrib-uglify": "0.5.0",
+        "grunt-contrib-copy": "~0.5.0",
+        "grunt-concat-css": "~0.3.1",
+        "grunt-contrib-cssmin": "~0.10.0",
+        "grunt-contrib-watch": "~0.6.1",
+        "karma": "~0.12.21",
+        "grunt-karma": "~0.8.3",
+        "karma-jasmine": "~0.2.0",
+        "karma-phantomjs-launcher": "~0.1.4",
+        "grunt-contrib-connect": "~0.8.0",
+        "karma-coverage": "~0.2.6"        
+    },
+    "scripts": {
+        "//": "There are many more tasks availabe via grunt. See Gruntfile.js",
+        "build": "npm install && grunt",
+        "develop": "grunt develop",
+        "test": "grunt test",
+        "bump": "grunt bump:minor"
+    }
+}

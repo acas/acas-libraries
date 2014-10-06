@@ -1,0 +1,54 @@
+﻿<style type="text/css">
+    .ac-notification-modal .modal-header {
+        cursor: pointer;
+        border-bottom-width: 0;
+    }
+
+        .ac-notification-modal .modal-header h4 {
+            font-size: 16px !important;
+            width: 568px;
+            -ms-word-break: break-all;
+            word-break: break-all;
+            overflow-x: hidden;
+        }
+
+    .ac-notification-modal .modal-body {
+        margin-bottom: 0;
+        border-top: 1px solid #e5e5e5;
+        padding-bottom: 0;
+    }
+
+    .ac-notification-modal-pageName {
+        font-style: italic;
+        padding-left: 22px;
+    }
+
+    #notificationServerHtml {
+        height: 600px;
+        width: 555px;
+    }
+</style>
+<div class="ac-notification-modal">
+    <div class="modal-header" ng-click="isCollapsed=!isCollapsed">
+        <h4 ng-class="{'ac-header-notification-error':history[historyIndex].eventCategory=='error' }">
+            <span class="glyphicon pull-right" style="color:#000;" ng-class="isCollapsed ? 'glyphicon-chevron-down' : 'glyphicon-chevron-up' " />
+            <span class="glyphicon {{getNotificationEventIcon(history[historyIndex])}}"></span> {{getNotificationEventTitle(history[historyIndex])}}
+        </h4>
+        <div ng-show="history[historyIndex].pageName!=null" class="ac-notification-modal-pageName">
+            {{history[historyIndex].pageName}}
+        </div>
+    </div>
+    <div class="modal-body" collapse="isCollapsed">
+        <pre id="notificationJsonRaw" style="display:none;"></pre>
+        <pre id="notificationJsonHtml" class="json CodeContainer"></pre>
+        <iframe id="notificationServerHtml" scrolling="auto" style="display: none;"></iframe>
+    </div>
+    <div class="modal-footer">
+        <div class="pull-left" ng-show="history.length > 1">
+            <button class="btn btn-default" ng-disabled="historyIndex==0" ng-click="previousNotification()"><span class="glyphicon glyphicon-chevron-left"></span> Previous</button>
+            <button class="btn btn-default" ng-disabled="historyIndex==history.length-1" ng-click="nextNotification()">Next <span class="glyphicon glyphicon-chevron-right"></span></button>
+        </div>
+        <button class="btn btn-default" style="margin-right:30px;" ng-click="reportEvent(history[historyIndex])"><span class="glyphicon glyphicon-envelope"></span> Report</button>
+        <button class="btn btn-primary" ng-click="closeModal()"><span class="glyphicon glyphicon-remove"></span> Close</button>
+    </div>
+</div>

@@ -1,0 +1,61 @@
+﻿/****
+Reporting Service/Dialog Styles
+Override these in the consuming application if necessary
+****/
+.ac-reporting-dialog-window{
+	/*top: 25% !important;
+	opacity: 1 !important;*/
+}
+.ac-reporting-dialog-window > div.modal-dialog > div.modal-content {
+	width:400px;
+	border-radius:0;
+}
+.ac-reporting-dialog-header{
+	background-color:#c9c9c9;
+	font-weight:bold;
+	margin:1px;
+	padding:5px;
+}
+.ac-reporting-dialog-instructions{
+	margin-left:5px;
+}
+    .ac-reporting-dialog-file-format {
+        padding: 5px;
+        margin: 5px;
+        border: 1px solid #CCCCCC;
+        cursor: pointer;
+    }
+        .ac-reporting-dialog-file-format:hover {
+            padding: 5px;
+            margin: 5px;
+            border: 1px solid #CCCCCC;
+            background-color: #DBF0FF;
+            cursor: pointer;
+        }
+
+    .ac-reporting-dialog-file-format-xls,
+	.ac-reporting-dialog-file-format-xlsx,
+	.ac-reporting-dialog-file-format-excel {
+        height: 48px;
+        width: 48px;
+        background-image: url(reporting/images/xls.png);
+        background-repeat: no-repeat;
+    }
+
+    .ac-reporting-dialog-file-format-pdf {
+        height: 48px;
+        width: 48px;
+        background-image:url(reporting/images/pdf.png);
+        background-repeat: no-repeat;
+    }
+
+    .ac-reporting-dialog-hint {
+        color: #666666;
+        font-size: 0.85em;
+        font-style: italic;
+		padding:5px;
+    }
+
+	.ac-reporting-dialog-cancel{
+		margin-bottom:5px;		
+	}
