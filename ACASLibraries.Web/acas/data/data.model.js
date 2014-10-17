@@ -59,7 +59,7 @@ acas.module('acas.data.model', 'underscorejs', 'Q', function () {
 	}
 
 	var filterModelsForProperty = function (modelNames, property) {
-		var filteredModelNames = []
+		var filteredModelNames = []		
 		_.each(modelNames, function (modelName) {
 			if (models[modelName][property] !== undefined)
 				filteredModelNames.push(modelName)
@@ -99,15 +99,15 @@ acas.module('acas.data.model', 'underscorejs', 'Q', function () {
 				while (vals.length) {
 
 					var itemResult = handler(vals.pop())
-					if (isPromise(itemResult)) {	
+					if (isPromise(itemResult)) {
 						itemResult.then(itemComplete)
 					}
 					else {
 						itemComplete()
 					}
 				}
-			} else {				
-				_.each(collection, function (val) {	handler(val) })
+			} else {
+				_.each(collection, function (val) { handler(val) })
 				deferred.resolve()
 			}
 		}, 0)
@@ -151,7 +151,7 @@ acas.module('acas.data.model', 'underscorejs', 'Q', function () {
 	var fireModelEvent = function (modelNames, eventName, cancellable) {
 		var deferred = Q.defer()
 		modelNames = toArray(modelNames)
-		asyncForEach(modelNames, false, function (name) {			
+		asyncForEach(modelNames, false, function (name) {
 			logEvent(name, eventName, cancellable)
 			var listeners = []
 			_.each(models[name][eventName], function (listener) {
@@ -306,7 +306,7 @@ acas.module('acas.data.model', 'underscorejs', 'Q', function () {
 			var deferred = Q.defer()
 			var modelsLoaded = 0
 			fireModelEvent(modelNames, 'beforeLoad', true).then(function () {
-				window.setTimeout(function () {					
+				window.setTimeout(function () {
 					asyncForEach(modelNames, valueOrResult(acas.data.model.asyncLoad), function (name) {
 						var m = models[name]
 
@@ -317,35 +317,35 @@ acas.module('acas.data.model', 'underscorejs', 'Q', function () {
 							//add new data to target if data was provided							
 							modelsLoaded++
 							if (modelsLoaded == modelNames.length)
-								fireModelEvent(modelNames, 'afterLoad', false).then(function () {									
+								fireModelEvent(modelNames, 'afterLoad', false).then(function () {
 									deferred.resolve(target)
-								})							
+								})
 						}
 
 						//define loader function
-						var load = function (target) {							
-							//check that this data is not already loading
+						var load = function (target) {
+							//check that this data is not already loading							
 							if (m.$acDataLoadState !== loadState.loading && m.$acDataLoadState !== loadState.reloading) {
 								//set loader state
 								m.$acDataLoadState = (m.$acDataLoadState === loadState.uninitialized ? loadState.loading : loadState.reloading)
 
 								//get load result								
-								var loadResult = m.load(target)								
+								var loadResult = m.load(target)
 								//check if load result is a promise
-								if (isPromise(loadResult)) {									
+								if (isPromise(loadResult)) {
 									Q(loadResult)
 									.then(function (data) {
-										m.$acDataLoadState = loadState.loaded										
+										m.$acDataLoadState = loadState.loaded
 										loadComplete(data)
 									})
-									.catch(function () {										
+									.catch(function () {
 										m.$acDataLoadState = (m.$acDataLoadState === loadState.loading ? loadState.uninitialized : loadState.unstable)
 										throw 'Load failed for model ' + name
 									})
 								}
 								else if (loadResult) {
 									//result is not a promise, check if it has a value and use result as data if so
-									m.$acDataLoadState = loadState.loaded									
+									m.$acDataLoadState = loadState.loaded
 									loadComplete(loadResult)
 								}
 									//load failed for some reason
@@ -358,7 +358,7 @@ acas.module('acas.data.model', 'underscorejs', 'Q', function () {
 								//data is already loading, just wait for it to finish
 								var waitForLoad = function () {
 									//finish waiting if load is complete
-									if (m.$acDataLoadState === loadState.loaded){									
+									if (m.$acDataLoadState === loadState.loaded) {
 										loadComplete()
 									}
 									else if (m.$acDataLoadState === loadState.loading || m.$acDataLoadState === loadState.reloading)
@@ -439,11 +439,15 @@ acas.module('acas.data.model', 'underscorejs', 'Q', function () {
 				//model queue loader
 				if (modelProcessQueue.length) {
 					//get the next model to process and load it
-					asyncForEach(modelProcessQueue, true, function (name) {						
+					asyncForEach(modelProcessQueue, true, function (name) {
 						var loadDeferred = Q.defer()
-						api.load(name, target).then(function () {
+						if (models[name].$acDataLoadState !== loadState.loaded) {
+							api.load(name, target).then(function () {
+								loadDeferred.resolve()
+							})
+						} else {
 							loadDeferred.resolve()
-						})
+						}
 						return loadDeferred.promise
 					}).then(function () {
 						//no more models to process
@@ -457,17 +461,16 @@ acas.module('acas.data.model', 'underscorejs', 'Q', function () {
 
 				return modelDeferred.promise
 			})
-			.then(function () {				
+			.then(function () {
 				deferred.resolve(target)
 			})
 
 			return deferred.promise
 		},
-		validate: function (modelNames) {
+		validate: function (modelNames) {			
 			modelNames = toArray(modelNames).reverse()
-			verifyModelsDefined(modelNames)
-			modelNames = filterModelsForProperty(modelNames)
-
+			verifyModelsDefined(modelNames)			
+			
 			fireModelEvent(modelNames, 'validate', false)
 
 			//defer processing to allow the promise to be returned
@@ -489,33 +492,35 @@ acas.module('acas.data.model', 'underscorejs', 'Q', function () {
 
 			window.setTimeout(function () {
 				var processValidation = true
+
 				while (processValidation && modelNames.length) {
+
 					var name = modelNames.pop()
-					//verify model exists
+					//verify model exists					
 					if (!models[name]) {
 						throw 'Model ' + name + ' not defined'
-
-						//check if model exists and has a validation function
-						if (typeof models[name].validate == 'function') {
-							var result = models[name].validate()
-							if (result === true) {
-								processValidation = resolve(true)
-							}
-							else if (isPromise(result)) {
-								result.then(function (valid) {
-									processValidation = resolve(valid)
-								})
-							}
-							else {
-								processValidation = resolve(false)
-							}
-						}
-						else {
-							//nothing to validate, return true by default
+					}					
+					//check if model exists and has a validation function
+					if (typeof models[name].validate == 'function') {					
+						var result = models[name].validate()
+						if (result === true) {
 							processValidation = resolve(true)
 						}
+						else if (isPromise(result)) {
+							result.then(function (valid) {
+								processValidation = resolve(valid)
+							})
+						}
+						else {
+							processValidation = resolve(false)
+						}						
+					}
+					else {
+						//nothing to validate, return true by default						
+						processValidation = resolve(true)
 					}
 				}
+
 			}, 0)
 
 			return deferred.promise
@@ -523,7 +528,7 @@ acas.module('acas.data.model', 'underscorejs', 'Q', function () {
 		save: function (modelNames, target) {
 			modelNames = toArray(modelNames).reverse()
 			verifyModelsDefined(modelNames)
-			//filter
+			//filter			
 			modelNames = _.filter(filterModelsForProperty(modelNames, 'save'), function (name) {
 				//check if dirty
 				if (models[name].isDirty != null) {
@@ -555,14 +560,16 @@ acas.module('acas.data.model', 'underscorejs', 'Q', function () {
 				var modelsToSave = modelNames.length
 				asyncForEach(modelNames, valueOrResult(acas.data.model.asyncSave), function (name) {
 					var m = models[name]
-
 					//wait to run this save until after the promise has been returned
-					var saveComplete = function () {
+					var saveComplete = function (result) {
 						//add new data to target if data was provided
 						modelsSaved++
 						if (modelsSaved == modelsToSave)
 							//resolve the save after the afterSave event fires
-							deferred.resolve(fireModelEvent(modelNames, 'afterSave', false))
+							fireModelEvent(modelNames, 'afterSave', false).then(function () {
+								deferred.resolve(result)
+							})
+							
 					}
 
 					//define saver function
@@ -574,14 +581,13 @@ acas.module('acas.data.model', 'underscorejs', 'Q', function () {
 								m.$acDataSaveState = saveState.saving
 
 								//get save result
-								var saveResult = m.save(target)
-
+								var saveResult = m.save(target)								
 								//check if save result is a promise
 								if (isPromise(saveResult)) {
 									Q(saveResult)
-									.then(function () {
+									.then(function (result) {										
 										m.$acDataSaveState = saveState.saved
-										saveComplete()
+										saveComplete(result)
 									})
 									.catch(function () {
 										m.$acDataSaveState = saveState.unsaved
@@ -600,7 +606,7 @@ acas.module('acas.data.model', 'underscorejs', 'Q', function () {
 								}
 							}
 
-							api.validate(name).then(function (valid) {
+							api.validate(name).then(function (valid) {								
 								if (valid) {
 									processSave()
 								}

@@ -27,6 +27,10 @@
         height: 600px;
         width: 555px;
     }
+    .modal-footer button,
+    .modal-footer > div > button{
+        height: auto; /*some applications override button height*/
+    }
 </style>
 <div class="ac-notification-modal">
     <div class="modal-header" ng-click="isCollapsed=!isCollapsed">
@@ -48,7 +52,7 @@
             <button class="btn btn-default" ng-disabled="historyIndex==0" ng-click="previousNotification()"><span class="glyphicon glyphicon-chevron-left"></span> Previous</button>
             <button class="btn btn-default" ng-disabled="historyIndex==history.length-1" ng-click="nextNotification()">Next <span class="glyphicon glyphicon-chevron-right"></span></button>
         </div>
-        <button class="btn btn-default" style="margin-right:30px;" ng-click="reportEvent(history[historyIndex])"><span class="glyphicon glyphicon-envelope"></span> Report</button>
+        <button ng-show="history[historyIndex].eventCategory==='error'" class="btn btn-default" style="margin-right:30px;" ng-click="reportErrorEvent(history[historyIndex])"><span class="glyphicon glyphicon-envelope"></span> Report</button>
         <button class="btn btn-primary" ng-click="closeModal()"><span class="glyphicon glyphicon-remove"></span> Close</button>
     </div>
 </div>

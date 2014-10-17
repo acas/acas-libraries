@@ -22,6 +22,8 @@
     <Content Include="acas\reporting\reporting.html" />
     <Content Include="acas\ui\acDatepicker.Directive.js" />
     <Content Include="acas\ui\acNumericInput.Directive.js" />
+    <Content Include="acas\ui\acSelect.Directive.js" />
+    <Content Include="acas\ui\acTags.Directive.js" />
     <Content Include="acas\ui\block-ui\acBlockUi.css" />
     <Content Include="acas\ui\block-ui\acBlockUi.Directive.js" />
     <Content Include="acas\ui\block-ui\acBlockUiManager.Service.js" />

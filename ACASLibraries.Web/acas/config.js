@@ -12,5 +12,8 @@ acas.config = {
 		negativeParenthesis: true
 	},
 
-	notifications: {logClientNotificationEventUrl: ''}
+	notifications: {
+		logClientNotificationEventUrl: '',
+		reportToAddress: ''
+	}
 }

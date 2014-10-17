@@ -83,7 +83,7 @@
 				showNotificationDetails: function (e) {
 
 					var modal = $modal.open({
-						templateUrl: '/notifications/NotificationDetail.html',
+						templateUrl: acas.cdnBaseUrl + '/notifications/NotificationDetail.html',
 						controller: 'acas-notifications-angular-modal-controller',
 						resolve: {
 							items: function () {
@@ -118,7 +118,7 @@
 		}
 	}])
 
-	acas.notifications.angular.controller('acas-notifications-angular-modal-controller', ['$scope', '$modalInstance', 'items', function ($scope, $modalInstance, items) {
+	acas.notifications.angular.controller('acas-notifications-angular-modal-controller', ['$scope', '$modalInstance', '$window', 'items', function ($scope, $modalInstance, $window, items) {
 		$scope.isCollapsed = true;
 		$scope.historyIndex = items.historyIndex;
 		$scope.history = items.history;
@@ -135,7 +135,7 @@
 			$scope.historyIndex++;
 		}
 
-		$scope.reportEvent = function (event) {
+		$scope.reportErrorEvent = function (event) {
 			var e = _.clone(event, true);
 			if (e && e.data && e.data.data) {
 				//remove HTML from JSON object
@@ -157,23 +157,27 @@
 					body.push('\n');
 				}
 			}
-
-			var link = 'mailto:' + encodeURIComponent(acas.web.config.appSettings.ReportErrorToAddress) + '?subject=Application%20Error%20-%20' + encodeURIComponent(items.getNotificationEventTitle(e)) + '&body=' + encodeURIComponent('The following error occurred:\n\n' + body.join(''));
-			if (link.length >= 2048) {
-				//restrict link to conform to GET request standards
-				link = link.substring(0, 2047);
-			}
-			if (acas.utility.isIE9()) {
-				var $mailtoIframe = jQuery('<iframe src="' + link + '"/>');
-				jQuery('body').append($mailtoIframe);
-				$mailtoIframe.remove();
+			
+			if (!acas.config.notifications.reportToAddress) {
+				if (console && console.error) {
+					console.error('Cannot report notification event: email address not configured.')
+				}
 			}
 			else {
-				$window.location = link;
-			}
-			//alert(link);
-			//$window.location = link;
-			//return link;
+				var link = 'mailto:' + encodeURIComponent(acas.config.notifications.reportToAddress) + '?subject=Application%20Error%20-%20' + encodeURIComponent(items.getNotificationEventTitle(e)) + '&body=' + encodeURIComponent('The following error occurred:\n\n' + body.join(''));
+				if (link.length >= 2048) {
+					//restrict link to conform to GET request standards
+					link = link.substring(0, 2047);
+				}
+				if (acas.utility.isIE9()) {
+					var mailtoIframe = jQuery('<iframe src="' + link + '"/>');
+					jQuery('body').append(mailtoIframe);
+					mailtoIframe.remove();
+				}
+				else {
+					$window.location = link;
+				}
+			}			
 		}
 
 		$scope.$watch('historyIndex', function () {
