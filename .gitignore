@@ -1,7 +1,7 @@
 *.suo
 *vssscc
 
-ACASLibraries.Web/*.bat
+ACASLibraries.Web/deploy.bat
 
 ACASLibraries.Web/npm-shrinkwrap.json
 ACASLibraries.Web/README.txt
@@ -14,6 +14,4 @@ obj/
 node_modules/
 bin/
 
-ACASLibraries\ Test\ Application
-ACASLibraries.Deploy
 dist
