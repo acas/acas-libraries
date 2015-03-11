@@ -21,12 +21,22 @@
     <Content Include="acas\reporting\reporting.css" />
     <Content Include="acas\reporting\reporting.html" />
     <Content Include="acas\ui\acDatepicker.Directive.js" />
-    <Content Include="acas\ui\acNumericInput.Directive.js" />
-    <Content Include="acas\ui\acSelect.Directive.js" />
-    <Content Include="acas\ui\acTags.Directive.js" />
+    <Content Include="acas\ui\acFreezeHeader.Directive.js" />
+    <Content Include="acas\ui\acKeypress.Directive.js" />
+    <Content Include="acas\ui\acNavigableTable.Directive.js" />
+    <Content Include="acas\ui\numericInput\acNumericInput.css" />
+    <Content Include="acas\ui\numericInput\acNumericInput.Directive.js" />
+    <Content Include="acas\ui\acTextarea.Directive.js" />
+    <Content Include="acas\ui\typeahead\acTypeahead.css" />
+    <Content Include="acas\ui\typeahead\acTypeahead.Directive.js" />
+    <Content Include="acas\ui\select\acSelect.css" />
+    <Content Include="acas\ui\select\acSelect.Directive.js" />
+    <Content Include="acas\ui\tags\acTags.css" />
+    <Content Include="acas\ui\tags\acTags.Directive.js" />
     <Content Include="acas\ui\block-ui\acBlockUi.css" />
     <Content Include="acas\ui\block-ui\acBlockUi.Directive.js" />
     <Content Include="acas\ui\block-ui\acBlockUiManager.Service.js" />
+    <Content Include="acas\ui\ui.test.js" />
     <Content Include="acas\utility\acDataCache.Service.js" />
     <Content Include="acas\utility\acToArray.Filter.js" />
     <Content Include="acas\utility\utility.js" />
@@ -65,8 +75,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="build.bat" />
-    <None Include="clean.bat" />
-    <None Include="deploy.bat" />
+    <None Include="clean.bat" />    
     <None Include="web.config" />
   </ItemGroup>
   <PropertyGroup>
@@ -114,7 +123,7 @@
   </PropertyGroup>
   <Target Name="Build">
     <Exec Command="$(MSBuildProjectDirectory)\build.bat $(MSBuildProjectDirectory)" />
-    <Exec Command="$(MSBuildProjectDirectory)\deploy.bat $(MSBuildProjectDirectory) $(Configuration) $(BuildNumber)" Condition="$(BuildingInsideVisualStudio) != true" />
+    <Exec Command="E:\DeployScripts\ACASLIbraries-GitHub\deploy.bat $(MSBuildProjectDirectory) $(Configuration) $(BuildNumber)" Condition="$(BuildingInsideVisualStudio) != true" />
   </Target>
   <Target Name="Clean">
     <Exec Command="$(MSBuildProjectDirectory)\clean.bat $(MSBuildProjectDirectory)" />
