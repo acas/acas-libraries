@@ -1,0 +1,10 @@
+﻿.ac-select.select2-container.select2-container-disabled .select2-choice .select2-arrow {
+	display:none;
+}
+
+.ac-select.select2-container.select2-container-disabled .select2-choice {
+	background-color: transparent;
+	background-image: none;
+	border: none;
+	cursor: default;
+}

@@ -1,0 +1,44 @@
+﻿div.ac-typeahead {	
+	cursor: pointer;
+	height: auto;
+	padding: 0;
+	position: relative;
+}
+
+input.ac-typeahead {		
+	width: 100%;
+}
+
+	input.ac-typeahead:active {
+		
+	}
+
+.ac-typeahead-dropdown {
+	box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 8px rgba(0, 0, 0, .075);
+	border: 1px solid lightgray;
+	overflow-y: auto;
+	max-height: 200px;
+	position: absolute;
+	width: 100%;
+	background-color: white;	
+	z-index: 999;
+}
+
+.ac-typeahead-dropdown:focus{
+	box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 8px rgba(0, 0, 0, .075);
+	border: 1px solid lightgray; 
+}
+
+.ac-typeahead-dropdown-item{
+	padding:5px;
+}
+
+.ac-typeahead-dropdown-item.no-results{
+	font-style:italic;
+	cursor:default;
+}
+
+.ac-typeahead-dropdown-item:not(.no-results):hover,
+.ac-typeahead-dropdown-item.active{
+	background-color:#D0ECFF;
+}
