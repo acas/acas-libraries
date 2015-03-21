@@ -1,4 +1,4 @@
-﻿acas.module('acas.notifications', 'jquery', 'jquery.noty', 'underscorejs', function () {	
+﻿acas.module('acas.notifications', 'jquery', 'jquery.noty', 'underscorejs', function () {
 	_.extend(acas.notifications,
 		new function () {
 
@@ -118,11 +118,11 @@
 				try {
 					e = getEventData.apply(this, newArgs);
 					if (e.eventType == 'error-http') {
-						if (detectDuplicateHttpErrors && isDuplicateHttpError(lastHttpError, e)) {
+						if (detectDuplicateHttpErrors && lastHttpError && isDuplicateHttpError(lastHttpError.error, e) && (new Date() - lastHttpError.timestamp) < 1000) {
 							//this error is a duplicate of the last error, ignore it
 							return;
 						}
-						lastHttpError = e;
+						lastHttpError = { timestamp: new Date(), error: e };
 					}
 					if (e.eventCategory == 'error' && e.eventType != 'error-http') {
 						sendNotificationToServer(e);

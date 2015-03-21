@@ -2,7 +2,7 @@
 	/*
 	This config must be setup in the project for all the pieces of the notifications module to work properly.
 	*/
-	
+
 	acas.notifications.angular.controller('acas-notifications-angular-controller', ['$scope', '$timeout', '$modal', function ($scope, $timeout, $modal) {
 		$scope.acas.notifications = new function () {
 			function notificationEventHandler(e) {
@@ -157,7 +157,7 @@
 					body.push('\n');
 				}
 			}
-			
+
 			if (!acas.config.notifications.reportToAddress) {
 				if (console && console.error) {
 					console.error('Cannot report notification event: email address not configured.')
@@ -169,15 +169,12 @@
 					//restrict link to conform to GET request standards
 					link = link.substring(0, 2047);
 				}
-				if (acas.utility.isIE9()) {
-					var mailtoIframe = jQuery('<iframe src="' + link + '"/>');
-					jQuery('body').append(mailtoIframe);
-					mailtoIframe.remove();
-				}
-				else {
-					$window.location = link;
-				}
-			}			
+				//this convoluted method is used so that it works in IE
+				var iframe = document.createElement("IFRAME")
+				iframe.src = link
+				document.body.appendChild(iframe)
+				document.body.removeChild(iframe)
+			}
 		}
 
 		$scope.$watch('historyIndex', function () {

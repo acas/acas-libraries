@@ -175,6 +175,72 @@ namespace ACASLibraries
 
 		#endregion
 
+		#region GetDataSet();
+
+		/// <summary>
+		/// Execute a stored procedure inside a transaction and return a DataSet with multiple tables within it.
+		/// Use this when the proc returns multiple result sets. Optionally takes an array of SqlParameter objects
+		/// and a timeout. Uses IsolationLevel: ReadCommitted
+		/// </summary>
+		/// <param name="procedureName">The name of the stored procedure to execute</param>
+		/// <param name="parameters">An array of SqlParameter objects</param>
+		/// <param name="timeout">Number of milliseconds for the command timeout</param>
+		/// <returns></returns>
+		public DataSet GetDataSet(string procedureName, SqlParameter[] parameters = null, int? timeout = null)
+		{
+			SqlConnection conn = CreateConnection();
+			SqlTransaction transaction = conn.BeginTransaction(IsolationLevel.ReadCommitted);
+			SqlCommand cmd = conn.CreateCommand();
+			SqlDataAdapter da = null;
+			DataSet ds = new DataSet(procedureName);
+			try
+			{
+				cmd = conn.CreateCommand();
+				cmd.Transaction = transaction;
+				cmd.CommandType = CommandType.StoredProcedure;				
+				if (timeout.HasValue)
+				{
+					cmd.CommandTimeout = timeout.Value;
+				}
+				cmd.CommandText = procedureName;
+				if (parameters != null)
+				{
+					cmd.Parameters.AddRange(parameters);
+				}
+
+				da = new SqlDataAdapter(cmd);
+				da.Fill(ds);
+				transaction.Commit();
+				return ds;
+			}
+			catch (Exception ex)
+			{
+				transaction.Rollback();
+				throw new ACASLibrariesException("An error occurred while retrieving data.", ex);
+			}
+			finally
+			{				
+				if (cmd != null)
+				{
+					cmd.Dispose();
+					cmd = null;
+				}
+				if (transaction != null)
+				{
+					transaction.Dispose();
+					transaction = null;
+				}
+				if (conn != null)
+				{
+					conn.Close();
+					conn.Dispose();
+					conn = null;
+				}
+			}			
+		}
+
+		#endregion
+
 		#region GetScalar
 
 		/// <summary>
@@ -317,7 +383,7 @@ namespace ACASLibraries
 		}
 
 		#endregion
-		
+
 		#region SetData();
 
 		/// <summary>

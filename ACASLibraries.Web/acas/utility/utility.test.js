@@ -18,6 +18,16 @@ describe('Parsing --> ', function () {
 
 })
 
+describe('Date', function () {
+	var date = acas.utility.date
+	
+	describe('addDays function', function () {
+		it('should add days to a date properly', function () {
+			expect(date.addDays('1/12/2014', 1)).toEqual(new Date('1/13/2014'))
+			expect(date.addDays('1/12/2014', -1)).toEqual(new Date('1/11/2014'))
+		})
+	})
+})
 
 describe('Formatting --> ', function () {
 	var formatting = acas.utility.formatting
@@ -67,6 +77,7 @@ describe('Formatting --> ', function () {
 						[123456.789455, "123,456.78946"],
 						[123456.789454, "123,456.78945"],
 						[12345678912.34567, "12,345,678,912.34567"],
+						[1.000049, "1.00005"]
 
 		]
 
@@ -74,15 +85,13 @@ describe('Formatting --> ', function () {
 			for (var i = 0; i < tests.length; i++) {
 				expect(formatting.formatNumber(tests[i][0], 3, 5)).toBe(tests[i][1])
 			}
-
 		})
 
 		it('formatNumber() - positive numbers, no thousands separator', function () {
 			for (var i = 0; i < tests.length; i++) {
 				expect(formatting.formatNumber(tests[i][0], 3, 5, false)).toBe(tests[i][1].replace(',', '').replace(',', '').replace(',', ''))
 			}
-
-		})
+        })
 
 		it('formatNumber() - negativeParenthesis, thousands separator', function () {
 			for (var i = 0; i < tests.length; i++) {
@@ -91,7 +100,6 @@ describe('Formatting --> ', function () {
 				} else {
 					expect(formatting.formatNumber(tests[i][0] * -1, 3, 5)).toBe("(" + tests[i][1] + ")")
 				}
-
 			}
 		})
 
@@ -114,7 +122,6 @@ describe('Formatting --> ', function () {
 				expect(formatting.formatNumber(tests2[i][0], 1)).toBe(formatting.formatNumber(tests2[i][0], 1, 10, ',', true))
 				expect(formatting.formatNumber(tests2[i][0], 1, 2, false)).toBe(formatting.formatNumber(tests2[i][0], 1, 2, '', true))
 			}
-
 		})
 
 		it('formatNumber() - zero precision lengths', function () {
@@ -134,7 +141,6 @@ describe('Formatting --> ', function () {
 				expect(formatting.formatNumber(tests2[i][0], 0, 2)).toBe(tests2[i][1])
 				expect(formatting.formatNumber(tests2[i][0], 0, 0)).toBe(tests2[i][2])
 			}
-
 		})
 
 		it('formatNumber() - rounding edge cases', function () {
@@ -147,6 +153,17 @@ describe('Formatting --> ', function () {
 			expect(formatting.formatNumber(.1999, 2, 3)).toBe("0.20")
 			expect(formatting.formatNumber(1.9999, 2, 3)).toBe("2.00")
 			expect(formatting.formatNumber(1.1999, 2, 3)).toBe("1.20")
+			expect(formatting.formatNumber(1.049, 2, 2)).toBe("1.05")
+			expect(formatting.formatNumber(1.0049, 2, 2)).toBe("1.00")
+			expect(formatting.formatNumber(2.0048, 2, 3)).toBe("2.005")
+			expect(formatting.formatNumber(1.099, 2, 2)).toBe("1.10")
+			expect(formatting.formatNumber(.0181, 2, 2)).toBe("0.02")
+			expect(formatting.formatNumber(2.00999, 2, 2)).toBe("2.01")
+			expect(formatting.formatNumber(3.00999, 2, 3)).toBe("3.01")
+			expect(formatting.formatNumber(4.00999, 3, 3)).toBe("4.010")
+			expect(formatting.formatNumber(5.00999, 2, 4)).toBe("5.01")
+			expect(formatting.formatNumber(6.00999, 4, 4)).toBe("6.0100")
+			
 		})
 
 		it('formatNumber() - funky inputs', function () {
@@ -177,18 +194,97 @@ describe('Formatting --> ', function () {
 			expect(formatting.formatNumber(-1234.451234, null, null, null, null, true)).toBe('(123,445.1234%)')
 			expect(formatting.formatNumber(-1234.451234, 0, 0, null, null, true)).toBe('(123,445%)')
 		})
-
 	});
 
+	describe('Validation --> ', function () {
+		var validation = acas.utility.validation
 
+		it('isValidDate() - smoke test', function () {
+			expect(validation.isValidDate('1/1/2013')).toBe(true)
+			expect(validation.isValidDate('')).toBe(false)
+			expect(validation.isValidDate(null)).toBe(false)
+		})
 
+		it('isValidNumericCharacter() - smoke test', function () {
+			expect(validation.isValidNumericCharacter('2')).toBe(true)
+			expect(validation.isValidNumericCharacter('0')).toBe(true)
+			expect(validation.isValidNumericCharacter('a')).toBe(false)
+			expect(validation.isValidNumericCharacter('A')).toBe(false)
+			expect(validation.isValidNumericCharacter('')).toBe(false)
+			expect(validation.isValidNumericCharacter(null)).toBe(false)
+		})
 
+		it('isValidNumber() - smoke test', function () {
+			expect(validation.isValidNumber('2')).toBe(true)
+			expect(validation.isValidNumber('0')).toBe(true)
+			expect(validation.isValidNumber('023')).toBe(true)
+			expect(validation.isValidNumber('2.3')).toBe(true)
+			expect(validation.isValidNumber('0.03')).toBe(true)
+			expect(validation.isValidNumber('a')).toBe(false)
+			expect(validation.isValidNumber('A')).toBe(false)
+			expect(validation.isValidNumber('')).toBe(false)
+			expect(validation.isValidNumber(null)).toBe(false)
+		})
+	})
 
+	describe('Array --> ', function () {
+		var array = acas.utility.array
+		var testArray = [
+			{ id: 2, name: 'Thing 1' },
+			{ id: 1, name: 'Thing 2' },
+			{ id: 3, name: 'Thing 3' },
+			{ id: 5, name: 'Thing 4' },
+			{ id: 4, name: 'Thing 5' },
+		]
 
+		it('argumentsToArray() -- smoke test', function () {
+			// 2nd parameter fails in strict mode
+			/*
+			var testArgsFunction = function (arg1, arg2, arg3) {
+				return array.argumentsToArray(arguments, false)
+			}
+			expect(testArgsFunction()).not.toContain(1)
+			expect(testArgsFunction()).not.toContain(2)
+			expect(testArgsFunction()).not.toContain(3)
+			expect(testArgsFunction(1, 2, 3)).toContain(1)
+			expect(testArgsFunction(1, 2, 3)).toContain(2)
+			expect(testArgsFunction(1, 2, 3)).toContain(3)
+			*/
+		})
 
+		it('sortByKey() -- smoke test', function () {
+			var test1 = array.sortByKey(testArray, 'id')
+			for (var i = 0; i < test1.length; i++) {
+				expect(test1[i].id).toEqual(i + 1)
+			}
+			var test2 = array.sortByKey(testArray, 'name')
+			for (var i = 0; i < test2.length; i++) {
+				expect(test2[i].name).toEqual('Thing ' + String(i + 1))
+			}
+		})
 
+		it('forceArray() -- smoke test', function () {
+			expect(array.forceArray({
+				1: 'hello',
+				2: 'world'
+			})).toEqual(jasmine.any(Array))
+			expect(array.forceArray([])).toEqual(jasmine.any(Array))
+			expect(array.forceArray('')).toEqual(jasmine.any(Array))
+			expect(array.forceArray(0)).toEqual(jasmine.any(Array))
+			expect(array.forceArray(1.0)).toEqual(jasmine.any(Array))
+		})
 
-
-
-
+		it('objectToArray() -- smoke test', function () {
+			var testObject = {
+				1: 'hello',
+				2: 'world',
+				3: function () { console.log('hello!') }
+			}
+			expect(array.objectToArray(testObject)).toEqual(jasmine.any(Array))
+			expect(array.objectToArray({})).toEqual(jasmine.any(Array))
+			expect(_.contains(testObject, function (item) {
+				return typeof item === 'function'
+			})).toBe(false)
+		})
+	})
 });

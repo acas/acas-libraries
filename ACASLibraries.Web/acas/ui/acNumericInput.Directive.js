@@ -12,6 +12,7 @@
  *			display formatting: minDisplayPrecision, maxDisplayPrecision, percent, negativeStyle - these control how the value is displayed when the input is not focused. When the input is focused,
  *				the raw value is shown. defaults are 2, 2, false, null respectively
  *			styling: inputClass (class to be applied to non-readonly inputs), readonlyClass (applied to readonly inputs), datagridElement (when true, styling is applied to integrate the input into a datagrid)
+ *		ng-blur: function call - ng-blur="boo()" --this will be executed AFTER the model is updated
  * 
  * We do not use ngModel to bind the input directly to the data because that introduces lag when the user is typing. Instead, we update the model
  * only on blur. This also gives us better control over the validation
@@ -20,32 +21,23 @@
  */
 
 acas.module('acNumericInput', 'acas.ui.angular', 'jquery', 'underscorejs', 'acValidation', function () {
-	acas.ui.angular.directive('acNumericInput', ['acValidation', function (acValidation) {
-
-		var getTemplate = function (scope) {
-			var template
-			if (scope.acReadonly) {
-				template = '<span style="float:right;text-align:right"></span>'
-			}
-			else {
-				template = '<input style="text-align:right"/>'
-			}
-			return template
-		}
-
+	acas.ui.angular.directive('acNumericInput', ['acValidation', '$compile', function (acValidation, $compile) {
 		return {
-			restrict: 'E',
-			replace: true,
+			restrict: 'E',			
 			scope: {
 				acValue: '=',
+				ngBlur: '&',
 				acComments: '=',
 				acReadonly: '=',
-				acNumericInputOptions: '='
-
+				acNumericInputOptions: '=',
+				acDisabled: '=?'				
 			},
 			//no template here. the template is set dynamically in the link function
 			link: function (scope, el, attr, ctrl) {
-				var options = {
+				var input //to be populated when it's not readonly
+				var options
+
+				options = {
 					datatype: 'decimal',
 					//min, max, scale and precision control what can actually be typed in the field. might contain business logic, but defaults based on the datatype
 					//to what that datatype in the db typically accepts.
@@ -96,19 +88,29 @@ acas.module('acNumericInput', 'acas.ui.angular', 'jquery', 'underscorejs', 'acVa
 						options.precision = options.precision !== null ? options.precision : 25
 						options.scale = options.scale !== null ? options.scale : 10
 				}
-
-				//retrieve the appropriate template and insert it into the dom
-				jQuery(getTemplate(scope)).insertBefore(el)
-				var newElement = el.parent().children()[0]
-				el.remove()
-				el = jQuery(newElement)
-
-				//assign the class attribute from the original element to the new one
-				var classes = (attr.class || '') + ' ' + (scope.acReadonly ? options.readonlyClass || '' : options.inputClass || '')
-				if (classes.trim() !== '') {
-					newElement.classList.add(classes.trim())
+							
+				var generateTemplate = function (readonly, element) {
+					var template
+					if (readonly) {
+						template = '<span style="float:right;text-align:right"></span>'
+					}
+					else {
+						template = '<input style="text-align:right;"/>'
+					}
+					jQuery(template).insertBefore(element)
+					var newElement = element.parent().children()[0]
+					//assign the class attribute from the original element to the new one					
+					var classes = (attr.class || '') + ' ' + (readonly ? options.readonlyClass || '' : options.inputClass || '')
+					if (classes.trim() !== '') {
+						newElement.classList.add(classes.trim())
+					}
+					$compile(newElement)(scope)
+					element.remove()
+					element = jQuery(newElement)
+			
+					return element
 				}
-
+				
 				var format = function (value) {
 					if (options.negativeStyle) {
 						if (value < 0) {
@@ -143,21 +145,13 @@ acas.module('acNumericInput', 'acas.ui.angular', 'jquery', 'underscorejs', 'acVa
 					}
 
 				}
-
-
-				if (scope.acReadonly) {
-					//watch the value and update the readonly span
-					scope.$watch(function () { return scope.acValue },
-						function () {
-							el.html(format(scope.acValue))
-						}
-					)
-				}
-				else {
-					//the core logic for the numeric input starts here
+				
+				var setupInput = function () {
+					//the core logic for the numeric input happens here
 					var oldValue;
 
-					var input = el
+					input = el
+					
 					input.bind('keypress', function (event) {
 
 						var character = String.fromCharCode(event.which || event.keyCode);
@@ -214,13 +208,12 @@ acas.module('acNumericInput', 'acas.ui.angular', 'jquery', 'underscorejs', 'acVa
 						} else {
 							input.val(format(oldValue)) //reset to what's in the model (original value)
 						}
+						scope.$apply(function () {
+							scope.ngBlur()
+						})
+						
 					})
-
-					scope.$watch(function () { return scope.acValue; }, function () {
-						input.val(format(scope.acValue))
-					});
-
-
+					
 					if (options.datagridElement) {
 						//if it's in a td, clicking anywhere on the td will focus the input,
 						//and focusing on the input will style the td. This gives the illusion of the entire td being the input box.
@@ -244,9 +237,6 @@ acas.module('acNumericInput', 'acas.ui.angular', 'jquery', 'underscorejs', 'acVa
 							})
 						}
 					}
-
-
-
 
 					//TODO - remove the tight coupling between comments and ac-numeric-input, use the ac-comments directive
 					//Also, note that comments currently requires the the input be inside a TD
@@ -401,8 +391,65 @@ acas.module('acNumericInput', 'acas.ui.angular', 'jquery', 'underscorejs', 'acVa
 							validationService.remove(validator)
 						})
 					}
+
+					//initial disabled state, in case scope.acDisabled is already stabilized before the input is setup
+					setDisabledState()
 				}
 
+				var setElementValue = function () {
+					if (scope.acReadonly) {
+						el.html(format(scope.acValue))
+					} else {
+						if (input) { //if input is still undefined, don't bother setting it
+							input.val(format(scope.acValue))
+						}
+						
+					}
+				}
+
+				var setDisabledState = function () {
+					if (scope.acDisabled) {
+						input.attr('disabled', 'disabled')
+					} else {
+						input.removeAttr('disabled')
+					}
+				}
+
+				var init = function () {
+					el = generateTemplate(!!scope.acReadonly, el)
+					if (!scope.acReadonly) {
+						//it's not readonly, there are stuff that need to be setup on the new input field
+						//events and whatnot
+						setupInput()					
+					}
+					//the new element's value must be populated from the model
+					setElementValue()
+				}				
+
+				scope.$watch(function () { return scope.acReadonly },
+					function (newValue, oldValue) {
+						if (!!newValue !== !!oldValue) {
+							init()
+						}
+					}
+				)
+
+				//setup disabled functionality
+				scope.$watch(function() { return scope.acDisabled },
+					function (newValue, oldValue) {
+						if (!!newValue !== !!oldValue) {
+							setDisabledState()
+						}					
+					})
+				
+				//watch the value and update the readonly span or input
+				scope.$watch(function () { return scope.acValue },
+					function () {
+						setElementValue()							
+					}
+				)
+
+				init()
 			}
 		}
 	}])

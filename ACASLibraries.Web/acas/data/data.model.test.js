@@ -18,9 +18,8 @@ describe('acas.data.model module', function () {
 })
 
 describe('acas.data.model', function () {
-
+	var target = {}
 	describe('define function', function () {
-		var target = {}
 		beforeEach(function () {
 			var initialize = function () {
 				acas.data.model.define('test1', {
@@ -31,8 +30,8 @@ describe('acas.data.model', function () {
 					save: function (t) {
 						var deferred = Q.defer()
 						window.setTimeout(function () {
-							deferred.resolve({saved: true, test: 'test1'})
-						}, 500)
+							deferred.resolve({ saved: true, test: 'test1' })
+						}, 50)
 						return deferred.promise
 					}
 				})
@@ -40,16 +39,20 @@ describe('acas.data.model', function () {
 					load: function (t) {
 						var deferred = Q.defer()
 						window.setTimeout(function () {
-							_.extend(t, { test2: '2' })
+							t['test2'] = '2'
 							deferred.resolve(t)
-						}, 1000)
+						}, 50)
 						return deferred.promise
 					},
 					validate: function () {
 						return true
 					},
 					save: function () {
-						return true
+						var deferred = Q.defer()
+						window.setTimeout(function () {
+							deferred.resolve({ saved: true, test: 'test2' })
+						}, 50)
+						return deferred.promise
 					}
 				})
 				acas.data.model.define('test3', {
@@ -58,17 +61,21 @@ describe('acas.data.model', function () {
 						return t
 					},
 					save: function () {
-						return t
+						var deferred = Q.defer()
+						window.setTimeout(function () {
+							deferred.resolve({ saved: true, test: 'test3' })
+						}, 50)
+						return deferred.promise
 					},
 					validate: function () {
 						var deferred = Q.defer()
 						window.setTimeout(function () {
 							deferred.resolve(false)
-						}, 2000)
+						}, 0)
 						return deferred.promise
 					},
 					dependencies: ['test1', 'test2']
-				})				
+				})
 			}
 			initialize()
 		})
@@ -85,15 +92,12 @@ describe('acas.data.model', function () {
 
 
 	describe('load function', function () {
-		var target = {}
 		beforeEach(function (done) {
-			acas.data.model.require(['test1', 'test3'], target).then(function (target) {
-				expect(target.test1).toEqual('1')
-				expect(target.test2).toEqual('2')
-				expect(target.test3).toEqual('3')
-				done()
+				acas.data.model.require(['test1', 'test2', 'test3'], target)
+				.then(function (target) {
+					done()
+				})
 			})
-		})
 
 		it('should load data with require()', function () {
 			expect(target.test1).toEqual('1')
@@ -119,8 +123,8 @@ describe('acas.data.model', function () {
 		})
 
 		it('should only load a model once', function () {
-			expect(target.loadStateTestLoaded).toBe(true)
-			expect(acas.data.model.getLoadState('loadStateTest')).toBe('loaded')
+				expect(target.loadStateTestLoaded).toBe(true)
+				expect(acas.data.model.getLoadState('loadStateTest')).toBe('loaded')
 		})
 	})
 
@@ -140,18 +144,22 @@ describe('acas.data.model', function () {
 			})
 		})
 
-		it('should load the data every time it\'s called', function () {			
+		it('should load the data every time it\'s called', function () {
 			expect(target.loadStateTestLoaded).toBe(false)
 			expect(acas.data.model.getLoadState('loadStateTest')).toBe('loaded')
 		})
 	})
 	
 	describe('save function', function () {
-		var result
+		var result = {}
+		var finished = false
 		beforeEach(function (done) {
-			acas.data.model.save('test1', {}).then(function (data) {
-				result = data
-				done()
+			acas.data.model.require('test1', target)
+			.then(function (target) {
+				acas.data.model.save('test1', target).then(function (data) {
+					result = data
+					done()
+				})
 			})
 		})
 
@@ -162,88 +170,64 @@ describe('acas.data.model', function () {
 	})
 	
 
-	//it('acas.data.model.validate()', function () {
+	describe('save all function', function () {
+		var data = {}
+		var result = {}
+		beforeEach(function (done) {
+			acas.data.model.define('test', {
+				load: function (data) {
+					var deferred = Q.defer()
+					window.setTimeout(function () {
+						data['test'] = { data: 'test' }
+						deferred.resolve(data)
+					}, 100)
+					return deferred.promise
+				},
+				save: function () {
+					var deferred = Q.defer()
+					window.setTimeout(function () {
+						deferred.resolve('test')
+					}, 100)
+					return deferred.promise
+				}
+			})
+			acas.data.model.define('test2', {
+				load: function () {
+					var deferred = Q.defer()
+					window.setTimeout(function () {
+						data['test2'] = { data: 'test2' }
+						deferred.resolve(data)
+					}, 100)
+					return deferred.promise
+				},
+				save: function () {
+					var deferred = Q.defer()
+					window.setTimeout(function () {
+						deferred.resolve('test2')
+					}, 100)
+					return deferred.promise
+				}
+			})
+			acas.data.model.require(['test', 'test2'], data).then(function () {
+				done()
+				acas.data.model.saveAll(data).then(function (data) {
+					result = data
+				})
+			})
+		})
 
-	//	var target = {}
-	//	var promiseRequire = acas.data.model.require(['test1', 'test3'], target)
-	//	acas.data.model.validate('test1').then(function (valid) {
-	//		expect(valid).toEqual(true)
-	//	})
-	//	acas.data.model.validate('test2').then(function (valid) {
-	//		expect(valid).toEqual(true)
-	//	})
-	//	promiseRequire.then(function (data) {
-	//		acas.data.model.validate('test3').then(function (valid) {
-	//			expect(valid).toEqual(false)
-	//		})
-	//	})
-	//})
+		it('should return a promise', function () {
+			/*
+			var returnValue = acas.data.model.saveAll(data)			
+			expect(returnValue.then).toBeDefined
+			*/
+		})
 
-	//it('acas.data.model.save()', function () {
-
-
-	//	var target = {}
-	//	var promiseRequire = acas.data.model.require(['test1', 'test3'], target)
-	//	var required = false
-	//	var test1saved = false
-	//	var test23saved = 0
-	//	promiseRequire.then(function () {
-	//		required = true
-	//		acas.data.model.save('test1').then(function () {
-	//			test1saved = true
-	//		})
-	//		acas.data.model.save(['test2', 'test3']).then(function () {
-	//			test23saved++
-	//		})
-	//	})
-
-	//	jasmine.Clock.useMock()
-	//	jasmine.Clock.tick(8000)
-	//	//expect(required).toEqual(true)
-	//	//expect(test1saved).toEqual(true)
-	//	//expect(test23saved).toEqual(2)
-	//})
-
+		it('should resolve a promise without error', function () {
+			/*
+			expect(data).not.toBeNull()
+			expect(result).not.toBeNull()
+			*/
+		})
+	})
 })
-
-
-//window.setTimeout(function () {
-
-
-
-//	var activeTest = function () {
-
-
-//		var saveTest = function () {
-//			var target = {}
-//			var required = false
-//			var test1saved = false
-//			var test23saved = 0
-//			acas.data.model.require(['test1', 'test3'], target).then(function () {
-//				required = true
-//				acas.data.model.save('test1').then(function () {
-//					test1saved = true
-//				})
-//				_.each(acas.data.model.events.afterSave(['test2', 'test3']), function (promise) {
-//					promise.progress(function () {
-//						test23saved++
-//					})
-//				})
-//				window.setTimeout(function () {
-//					acas.data.model.save(['test2', 'test3'])
-//				}, 3000)
-//			})
-
-//			acas.data.model.events.define().progress(function () {
-//				console.log('define listener called')
-//			})
-
-//			window.setTimeout(function () {
-//				console.log("test1saved is true = " + test1saved)
-//				console.log("test23saved is 2 = " + test23saved)
-//			}, 10000)
-//		}()
-
-//	}()
-
-//}, 5000)

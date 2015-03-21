@@ -57,16 +57,25 @@
 		//format a date. If it's a .NET date or not a date, convert it to a JS date first.
 		.filter('acFormatDate', function () {
 			return function (value) {
-				if (value != null) {
+				if (value != null && value != '') {
 					return acas.utility.formatting.formatDate(value);
 				} else {
 					return "";
 				}
 			}
 		})
+        .filter('acFormatAlphanumericDate', function () {
+        	return function (value) {
+        		if (value != null && value != '') {
+        		    return acas.utility.formatting.formatAlphanumericDate(value);
+        		} else {
+        		    return "";
+        		}
+        	}
+        })
 		.filter('acFormatTime', function () {
 			return function (value) {
-				if (value != null) {
+			    if (value != null && value != '') {
 					return acas.utility.formatting.formatTime(value);
 				} else {
 					return "";
@@ -75,7 +84,7 @@
 		})
 		.filter('acFormatDateTime', function () {
 			return function (value) {
-				if (value != null) {
+			    if (value != null && value != '') {
 					return acas.utility.formatting.formatDateTime(value);
 				} else {
 					return "";
@@ -84,11 +93,23 @@
 		})
 		.filter('acFormatUsername', function () {
 			return function (value) {
-				if (value != null) {
+			    if (value != null && value != '') {
 					return acas.utility.formatting.formatUsername(value);
 				} else {
 					return "";
 				}
 			}
-		});
+		})
+		.filter('acAbsoluteValue', function () {
+			return function (value) {
+				if (value === undefined || value === '' | value === null) {
+					return ''
+				}
+				else {
+					value = Math.abs(value)
+					return isNaN(value) ? "" : value					
+				}								
+			}
+		})
+	;
 })

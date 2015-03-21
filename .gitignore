@@ -1,11 +1,7 @@
 *.suo
 *vssscc
 
-ACASLibraries.Web/deploy.bat
-
 ACASLibraries.Web/npm-shrinkwrap.json
-ACASLibraries.Web/README.txt
-ACASLibraries.Web/coverage
 
 *vspscc
 *.user

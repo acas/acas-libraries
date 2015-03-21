@@ -32,6 +32,27 @@ acas.module('acas.utility', 'underscorejs', function () {
 
 				return event;
 			},
+			date: {
+				addDays: function (date, days) {
+					return new Date(acas.utility.parser.toDate(date).getTime() + (86400 * 1000 * days))
+				}
+			},
+			data: {
+				// Gets the value of referential data and translates it to a specified display value
+				// id: The lookup id
+				// dataModel: The data model in which the lookup will be performed. Must be an array of object
+				// idColumnName: The column in the referential data table that the ID parameter will
+				//               refer to during the lookup
+				// displayColumnName: The display value of the record pertaining to the id value in
+				//                    an ID column
+				getReferentialDataValue: function (id, dataModel, idColumnName, displayColumnName) {
+					var value = _.find(dataModel, function (item) {
+						return id == item[idColumnName];
+					});
+					if (value === undefined || value === null) return ''
+					else return value[displayColumnName]
+				}
+			},
 			formatting: {
 				padZero: function (string, minLength) {
 					//TODO test this function
@@ -56,6 +77,39 @@ acas.module('acas.utility', 'underscorejs', function () {
 					var month = date.getMonth();
 					var day = date.getDate();
 					return (month + 1).toString() + '/' + day.toString() + '/' + year.toString();
+				},
+				formatAlphanumericDate: function (date) {
+					var getMonthAbbreviation = function (monthNumber) {
+						switch (monthNumber) {
+							case 1: return "Jan"
+							case 2: return "Feb"
+							case 3: return "Mar"
+							case 4: return "Apr"
+							case 5: return "May"
+							case 6: return "Jun"
+							case 7: return "Jul"
+							case 8: return "Aug"
+							case 9: return "Sep"
+							case 10: return "Oct"
+							case 11: return "Nov"
+							case 12: return "Dec"
+							default: return "Unk"
+						}
+						return "Unk"
+					}
+					var dateBuilder = function (dateString) {
+						if (dateString !== undefined
+							&& dateString != null
+							&& dateString != '') {
+							var dateParts = acas.utility.formatting.formatDate(dateString).split("/")
+							if (dateParts.length === 3) {
+								var month = getMonthAbbreviation(parseInt(dateParts[0]))
+								return month + " " + dateParts[1] + ", " + dateParts[2]
+							}
+						}
+						return null
+					}
+					return dateBuilder(date)
 				},
 				//please don't use this to format dates for the UI - use formatDate() instead. Use this if you need to format a date for some other use.
 				formatDateFixedLength: function (date) {
@@ -103,8 +157,17 @@ acas.module('acas.utility', 'underscorejs', function () {
 					if (dotIndex > -1) {
 						username = username.substring(dotIndex + 1);
 					}
-					username = username.replace('.', ' ');
-					return username;
+					var usernameParts = username.split('.');
+					for (var x = 0; x < usernameParts.length; x++) {
+						if (usernameParts[x].length > 1) {
+							usernameParts[x] = usernameParts[x].substr(0, 1).toUpperCase() + usernameParts[x].substr(1);
+						}
+						else {
+							usernameParts[x] = usernameParts[x].toUpperCase();
+						}
+					}
+					//username = username.replace('.', ' ');
+					return usernameParts.join(' ');
 
 				},
 				//takes a number and formats it - returns a string
@@ -147,33 +210,16 @@ acas.module('acas.utility', 'underscorejs', function () {
 					}
 
 					var negative = value < 0
-					var stringValue = value.toString().substr(negative ? 1 : 0)
-					var decimalIndex = stringValue.indexOf('.')
-					var integer = decimalIndex === -1 ? stringValue : stringValue.substr(0, decimalIndex) || "0"
-					var decimal = decimalIndex === -1 ? '' : stringValue.substr(decimalIndex + 1)
-					var zeroes = "0000000000000000000000000000000000000000000000000000000000000000000000"
-
-					//deal with precision. first the rounding
-					if (decimal.length > maxPrecision) {
-						if (decimal.charAt(maxPrecision) >= 5) {
-							decimal = (parseInt(decimal.substr(0, maxPrecision)) + 1).toString()
-							if (isNaN(decimal) || decimal.length > maxPrecision) {
-								decimal = ''
-								integer = (parseInt(integer) + 1).toString()
-							}
-						}
-						else {
-							decimal = decimal.substr(0, maxPrecision)
-							if (isNaN(decimal)) {
-								decimal = ''
-							}
-						}
-						//after rounding, we could be left with just trailing zeroes. get rid of them
-						while (decimal.charAt(decimal.length - 1) === "0") {
-							decimal = decimal.substr(0, decimal.length - 1)
-						}
+					if (negative) {
+						value = value * -1
 					}
-
+					var rounded = +(Math.round(value + ("e+" + maxPrecision)) + ("e-" + maxPrecision))					
+					var stringValue = rounded.toString()
+					var decimalIndex = stringValue.indexOf('.')
+					var decimal = decimalIndex === -1 ? '' : stringValue.substr(decimalIndex + 1)
+					var integer = decimalIndex === -1 ? stringValue : stringValue.substr(0, decimalIndex) || "0"
+					var zeroes = "0000000000000000000000000000000000000000000000000000000000000000000000"
+				
 					//pad the zeroes to minPrecision. It's possible that this is hit even though we started longer than maxPrecision, after rounding and removing trailing zeroes
 					if (decimal.length < minPrecision) {
 						decimal = (decimal + zeroes).substr(0, minPrecision)
@@ -213,12 +259,14 @@ acas.module('acas.utility', 'underscorejs', function () {
 			},
 			validation: {
 				isValidDate: function (dateValue) {
+					if (dateValue == null) return false
 					var date = new Date(dateValue);
 					return (date instanceof Date && !isNaN(date.valueOf()))
 				},
 
 				//determines whether a single character is valid inside of a number. essentially just digits, decimal (.), and minus sign (-)
 				isValidNumericCharacter: function (character) {
+					if (character == null) return false
 					var VALID_CHARACTERS_REGEX = /^[0-9-.]$/; //a single numeric character or - and .
 					return VALID_CHARACTERS_REGEX.test(character)
 				},
@@ -240,11 +288,15 @@ acas.module('acas.utility', 'underscorejs', function () {
 				//determines whether a keypress event is a printable character. Useful for filtering out keypresses like tab, backspace, enter, etc.
 				//incomplete list
 				isPrintableCharacter: function (event) {
-					return !event.ctrlKey && !_.contains([0, 8, 9, 13], event.which) //TODO add to this list			
+					return !event.ctrlKey && !_.contains([0, 8, 9
+						,13 //enter key
+						,37, 38, 39, 40	//arrow keys					
+					], event.which) //TODO add to this list			
 				},
 
 				//determines whether a value is a valid number or not. TODO - not tested very well
 				isValidNumber: function (value) {
+					if (value == null) return false
 					var NUMBER_REGEXP = /^\s*(\-|\+)?(\d+|(\d*(\.\d*)))\s*$/;
 					return NUMBER_REGEXP.test(value)
 					//return !(_.isEmpty(numberValue) || _.isNaN(numberValue)) 				
@@ -287,7 +339,7 @@ acas.module('acas.utility', 'underscorejs', function () {
 					//optionally orders the output by a given property of each property
 					//this is useful if the properties of the object are objects themselves
 					var out = [];
-					for (i in input) {
+					for (var i in input) {
 						if (typeof (input[i]) !== 'function') {
 							out.push(input[i]);
 						}
@@ -327,6 +379,12 @@ acas.module('acas.utility', 'underscorejs', function () {
 						scrollBarWidth = (w1 - w2);
 					}
 					return scrollBarWidth;
+				}
+			},
+			text: {
+				setCharAt: function(string,index,char) {
+					if(index > string.length-1) return str;
+					return string.substr(0,index) + char + string.substr(index+1);
 				}
 			},
 			parser: new function() {
