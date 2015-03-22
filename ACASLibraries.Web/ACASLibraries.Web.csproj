@@ -45,7 +45,6 @@
     <Content Include="Gruntfile.js" />
     <Content Include="karma.conf.js" />
     <Content Include="lib\q.js" />
-    <Content Include="README.txt" />
     <Content Include="acas\utility\utility.test.js" />
   </ItemGroup>
   <ItemGroup>
@@ -76,7 +75,6 @@
   <ItemGroup>
     <None Include="build.bat" />
     <None Include="clean.bat" />
-    <None Include="deploy.bat" />
     <None Include="web.config" />
   </ItemGroup>
   <PropertyGroup>
