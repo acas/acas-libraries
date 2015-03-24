@@ -13,9 +13,19 @@ acas.module('acBlockUi', 'jquery', 'acas.ui.angular', 'acBlockUiManager', functi
 			},
 			link: function (scope, element, attributes) {
 
+				var config = _.extend({
+					urlPattern: null,
+					manualStartKey: null,
+					httpMethods: [],
+					excludeHttpMethods: []
+				}, scope.acBlockUi)
+
+
 				var block = acBlockUiManager.register({
-					urlPattern: attributes.acUrlPattern,
-					manualStartKey: attributes.acManualStartKey,
+					urlPattern: config.urlPattern,
+					manualStartKey: config.manualStartKey,
+					httpMethods: config.httpMethods,
+					excludeHttpMethods: config.excludeHttpMethods,
 					element: element,
 					blocking: false
 				})
