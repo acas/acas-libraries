@@ -32,15 +32,11 @@ acas.module('acSelect', 'acas.angular', 'select2', 'jquery', 'underscorejs', 'ac
 				var optionsHtml
 				eval('var config = ' + attributes.acSelectOptions)
 				config = _.extend(defaultOptions, config)
-				if (config.bindOptionsOnce) {
-					if (attributes.acDisplayFunction && console && console.warn) {
-						console.warn('acSelect does not support acDisplayFunction or acDisplaySelected when acBindOptionsOnce is true. They will be ignored.')
-					}
-					optionsHtml = '<option bindonce ng-repeat="element in acOptions" bo-value="element[acValue]" bo-text="element[acDisplay]"></option>'
+				if (config.bindOptionsOnce) {					
+					optionsHtml = '<option ng-repeat="element in ::acOptions" value="{{::element[acValue]}}" data-ac-display-selected="{{::acDisplaySelected(element)}}">{{::element[acDisplay]}}{{::acDisplayFunction(element)}}</option>'					
 				}
-				else {
-					var displayFunctionHtml = attributes.acDisplayFunction ? 'ng-bind-html="acDisplayFunction(element)"' : ""
-					optionsHtml = '<option ng-repeat="element in acOptions" value="{{element[acValue]}}" data-ac-display-selected="{{acDisplaySelected(element)}}" ' + displayFunctionHtml + '>{{element[acDisplay]}}</option>'
+				else {					
+					optionsHtml = '<option ng-repeat="element in acOptions" value="{{element[acValue]}}" data-ac-display-selected="{{acDisplaySelected(element)}}">{{element[acDisplay]}}{{acDisplayFunction(element)}}</option>'
 				}
 
 				if (config.allowEmpty) {
