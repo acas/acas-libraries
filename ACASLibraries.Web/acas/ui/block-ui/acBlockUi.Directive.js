@@ -1,5 +1,5 @@
 acas.module('acBlockUi', 'jquery', 'underscorejs', 'acas.ui.angular', 'acBlockUiManager', function () {
-	acas.ui.angular.directive('acBlockUi', ['acBlockUiManager', function (acBlockUiManager) {
+	acas.ui.angular.directive('acBlockUi', ['acBlockUiManager', '$timeout', function (acBlockUiManager, $timeout) {
 		/*
 		This is a work in progress. The block ui style needs to be improved - it should only cover the element it's on, and it should
 		not let the user scroll off of it
@@ -44,9 +44,13 @@ acas.module('acBlockUi', 'jquery', 'underscorejs', 'acas.ui.angular', 'acBlockUi
 				var blockElement
 				var applyBlock = function (on) {
 					if (on) {
-						var html = "<div class = 'ac-block-ui'><span class='ac-block-ui-message'>Please Wait...</span></div>"
+						var html = "<div class = 'ac-block-ui'><div></div></div>"
 						blockElement = jQuery(jQuery(element.parent()).prepend(html).children()[0])
-
+						$timeout(function () {
+								if (blockElement) {
+									blockElement.children()[0].classList.add('spinner')
+								}
+						}, 200)
 					} else {
 						if (blockElement) {
 							blockElement.remove()
