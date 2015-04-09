@@ -1,12 +1,12 @@
 ﻿'use strict';
 
-acas.module('acas.utility', 'underscorejs', function () {		
+acas.module('acas.utility', 'underscorejs', function () {
 
 	var utilityApi = {
 		isIE9: function () {
 			return document.all && !window.atob;
 		},
-		event:  function (eventType) {
+		event: function (eventType) {
 			var event = {
 				type: eventType,
 				subscribers: [],
@@ -184,7 +184,7 @@ acas.module('acas.utility', 'underscorejs', function () {
 				if (thousandsSeparator === undefined || thousandsSeparator === null) {
 					thousandsSeparator = acas.config.numericDisplayDefaults.thousandsSeparator
 				}
-				
+
 				if (negativeParenthesis === undefined || negativeParenthesis === null) {
 					negativeParenthesis = acas.config.numericDisplayDefaults.negativeParenthesis
 				}
@@ -199,28 +199,28 @@ acas.module('acas.utility', 'underscorejs', function () {
 				if (typeof (value) === 'string' && value.indexOf('.') !== value.lastIndexOf('.')) { //more than one decimal point
 					return null
 				}
-					
+
 				value = parseFloat(value)
 				if (isNaN(value)) {
 					return null
 				}
-					
+
 				//handle percent - multiply by 100 before doing all the rounding and stuff
 				if (percent) {
-					value = value * 100						
+					value = value * 100
 				}
 
 				var negative = value < 0
 				if (negative) {
 					value = value * -1
 				}
-				var rounded = +(Math.round(value + ("e+" + maxPrecision)) + ("e-" + maxPrecision))					
+				var rounded = +(Math.round(value + ("e+" + maxPrecision)) + ("e-" + maxPrecision))
 				var stringValue = rounded.toString()
 				var decimalIndex = stringValue.indexOf('.')
 				var decimal = decimalIndex === -1 ? '' : stringValue.substr(decimalIndex + 1)
 				var integer = decimalIndex === -1 ? stringValue : stringValue.substr(0, decimalIndex) || "0"
 				var zeroes = "0000000000000000000000000000000000000000000000000000000000000000000000"
-				
+
 				//pad the zeroes to minPrecision. It's possible that this is hit even though we started longer than maxPrecision, after rounding and removing trailing zeroes
 				if (decimal.length < minPrecision) {
 					decimal = (decimal + zeroes).substr(0, minPrecision)
@@ -290,8 +290,8 @@ acas.module('acas.utility', 'underscorejs', function () {
 			//incomplete list
 			isPrintableCharacter: function (event) {
 				return !event.ctrlKey && !_.contains([0, 8, 9
-					,13 //enter key
-					,37, 38, 39, 40	//arrow keys					
+					, 13 //enter key
+					, 37, 38, 39, 40	//arrow keys					
 				], event.which) //TODO add to this list			
 			},
 
@@ -302,7 +302,7 @@ acas.module('acas.utility', 'underscorejs', function () {
 				return NUMBER_REGEXP.test(value)
 				//return !(_.isEmpty(numberValue) || _.isNaN(numberValue)) 				
 			}
-		},		
+		},
 		array: {
 			argumentsToArray: function (args, includeCalleeInArray) {
 				if (args === undefined || args === null) {
@@ -383,12 +383,12 @@ acas.module('acas.utility', 'underscorejs', function () {
 			}
 		},
 		text: {
-			setCharAt: function(string,index,char) {
-				if(index > string.length-1) return str;
-				return string.substr(0,index) + char + string.substr(index+1);
+			setCharAt: function (string, index, char) {
+				if (index > string.length - 1) return str;
+				return string.substr(0, index) + char + string.substr(index + 1);
 			}
 		},
-		parser: new function() {
+		parser: new function () {
 			var utilities = {
 				//private function to convert the string .NET spits out to a proper javascript date
 				dotNetDateToDate: function (dotNetDateString) {
@@ -437,6 +437,75 @@ acas.module('acas.utility', 'underscorejs', function () {
 			}
 			return api
 		},
+		periods: {
+			//private function to convert monthId to the quarterId it occurs in
+			monthIdToQuarterId: function (monthId) {
+				return monthId.toString().slice(0, 4) * 10 + (Math.floor((monthId.toString().slice(4) - .1) / 3) + 1)
+			},
+
+			addMonths: function (monthId, increment) {
+				if (monthId && increment) {
+					if (monthId.toString().length !== 6) {
+						return;
+					} else {
+						var year = Math.floor(monthId / 100);
+						var month = monthId % 100;
+						month += increment;
+						while (month < 1 || month > 12) {
+							if (month > 12) {
+								month = month - 12;
+								year += 1;
+							}
+							else if (month < 1) {
+								month = month + 12;
+								year -= 1;
+							}
+						}
+						return year * 100 + month;
+					}
+				} else {
+					return monthId;
+				}
+			},
+
+			addQuarters: function (quarterId, increment) {
+				if (quarterId && increment) {
+					var correspondingMonth = quarterId.toString().slice(0, 4) * 100 + quarterId.toString().slice(4) * 3
+					var newMonth = periods.addMonths(correspondingMonth, increment * 3)
+					return periods.monthIdToQuarterId(newMonth)
+				} else {
+					return quarterId;
+				}
+			},
+
+			displayMonth: function (monthId) {
+				if (!monthId || monthId.toString().length !== 6) {
+					return;
+				} else {
+					var year = Math.floor(monthId / 100);
+					var month = monthId % 100;
+					return year + "-" + formatting.padZero(month, 2);
+				}
+			},
+
+			displayQuarter: function (quarterId) {
+				if (!quarterId || quarterId.toString().length !== 5) {
+					return;
+				} else {
+					return 'Q' + quarterId.toString().substr(4) + ' ' + quarterId.toString().slice(0, 4)
+				}
+			},
+
+			currentMonth: function () {
+				var today = new Date();
+				return today.getFullYear() * 100 + today.getMonth() + 1; //getMonth is zero indexed
+			},
+
+			currentQuarter: function () {
+				return periods.monthIdToQuarterId(periods.currentMonth())
+			}
+		},
+
 		navigationConfirmation: function (dirtyCheck, event) {
 			//first parameter should resolve to whether or not the page is dirty, the second should have the navigation event if it exists
 			//if the function is being called from window.beforeunload, don't pass an event in and the function will return the message
