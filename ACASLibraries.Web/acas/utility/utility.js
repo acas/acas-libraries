@@ -471,8 +471,8 @@ acas.module('acas.utility', 'underscorejs', function () {
 			addQuarters: function (quarterId, increment) {
 				if (quarterId && increment) {
 					var correspondingMonth = quarterId.toString().slice(0, 4) * 100 + quarterId.toString().slice(4) * 3
-					var newMonth = periods.addMonths(correspondingMonth, increment * 3)
-					return periods.monthIdToQuarterId(newMonth)
+					var newMonth = this.addMonths(correspondingMonth, increment * 3)
+					return this.monthIdToQuarterId(newMonth)
 				} else {
 					return quarterId;
 				}

@@ -315,4 +315,15 @@ describe('Periods -->', function () {
 			
 		})
 	})
+
+	describe('addQuarters function', function () {
+		it('should add or subtract quarters to a quarter', function () {
+			expect(periods.addQuarters(20121, 1)).toEqual(20122)
+			expect(periods.addQuarters(20171, 6)).toEqual(20183)
+			expect(periods.addQuarters(20172, -7)).toEqual(20153)
+			expect(periods.addQuarters(20131, -1)).toEqual(20124)
+			expect(periods.addQuarters(20141, -3)).toEqual(20132)
+
+		})
+	})
 })
