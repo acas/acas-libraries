@@ -502,7 +502,7 @@ acas.module('acas.utility', 'underscorejs', function () {
 			},
 
 			currentQuarter: function () {
-				return periods.monthIdToQuarterId(periods.currentMonth())
+				return this.monthIdToQuarterId(this.currentMonth())
 			}
 		},
 

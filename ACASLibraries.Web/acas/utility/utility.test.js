@@ -288,3 +288,31 @@ describe('Formatting --> ', function () {
 		})
 	})
 });
+
+describe('Periods -->', function () {
+	var periods = acas.utility.periods
+
+	describe('current periods functions', function () {
+
+		it('should correctly return the current month', function () {
+			var month = (new Date()).getFullYear() * 100 + (new Date()).getMonth() + 1
+			expect(periods.currentMonth()).toEqual(month)
+		})
+
+		it('should correctly return the current quarter', function () {
+			var quarter = (new Date()).getFullYear() * 10 + (((new Date()).getMonth() + 1) % 3) + 1			
+			expect(periods.currentQuarter()).toEqual(quarter)
+		})
+	})
+
+	describe('addMonths function', function () {
+		it('should add or subtract months to a month', function () {
+			expect(periods.addMonths(201201, 1)).toEqual(201202)
+			expect(periods.addMonths(201701, 15)).toEqual(201804)
+			expect(periods.addMonths(201702, -15)).toEqual(201511)
+			expect(periods.addMonths(201301, -1)).toEqual(201212)
+			expect(periods.addMonths(201401, -11)).toEqual(201302)			
+			
+		})
+	})
+})
