@@ -1,6 +1,5 @@
 ﻿acas.module('acDatepicker', 'acas.utility', 'acas.ui.angular', 'jquery.ui', function () {
-	acas.ui.angular.directive('acDatepicker', [function () {
-
+	acas.ui.angular.directive('acDatepicker', [ function () {
 		// date format is fixed for now
 		var dateFormat = 'mm/dd/yy'
 
@@ -116,6 +115,41 @@
 					}
 					return false
 				}
+	
+				// check for a valid partial date
+				scope.isDatePartial = function(dateString) {
+					if (typeof dateString == "string") {
+						var splitDate = dateString.split("/")
+						var result = ""
+						for (var i = 0; i < splitDate.length; i++) {
+							if (splitDate[i] === "") {
+								splitDate.splice(i, 1)
+							}
+						}
+						if (splitDate.length === 2) {
+							return true
+						}
+					}
+					return false
+				}
+
+				// autocomplete a valid partial date with the current year
+				scope.completeDatePartial = function(dateString) {
+					if (typeof (dateString) == "string") {
+						var splitDate = dateString.split("/")
+						var result = ""
+						for (var i = 0; i < splitDate.length; i++) {
+							if (splitDate[i] === "") {
+								splitDate.splice(i, 1)
+							}
+						}
+						if (splitDate.length === 2) {
+							return splitDate[0] + "/" + splitDate[1] + "/" + (new Date()).getFullYear()
+						} else {
+							return null
+						}
+					}
+				}
 
 				// set defaults if disabled properties not specified
 				if (!scope.acDisabled) scope.acDisabled = false
@@ -224,6 +258,8 @@
 								// keep values consistent, should be null when empty, not empty string
 								newValue = null
 								scope.acValue = null
+							} else if (scope.isDatePartial(newValue)) {
+								newValue = scope.completeDatePartial(newValue)
 							}
 							input.val(acas.utility.formatting.formatDate(newValue));
 						} else {
