@@ -197,8 +197,18 @@ describe('Formatting --> ', function () {
 
 		it('formatNumber() - tiny values', function () {
 			//there were some issues with numbers like these in the past
-			expect(formatting.formatNumber(-1.4551915228366852e-11)).toBe('(0.00)')
-			expect(formatting.formatNumber(21.4551915228366852e-11)).toBe('0.00')
+			expect(formatting.formatNumber(-1.4551915228366852e-11)).toBe('0.00')
+			expect(formatting.formatNumber(1.4551915228366852e-11)).toBe('0.00')
+			expect(formatting.formatNumber(-4.4551915228366852e-20)).toBe('0.00')
+			expect(formatting.formatNumber(4.4551915228366852e-20)).toBe('0.00')			
+			expect(formatting.formatNumber(-6.4551915228366852e-20)).toBe('0.00')			
+			expect(formatting.formatNumber(6.4551915228366852e-20)).toBe('0.00')
+			expect(formatting.formatNumber(-6.4551915228366852e-11)).toBe('0.00')
+			expect(formatting.formatNumber(6.4551915228366852e-11)).toBe('0.00')			
+		})
+
+		it('formatNumber() - huge values', function () {
+			//TODO - can formatNumber() support large exponentials?
 		})
 	});
 
