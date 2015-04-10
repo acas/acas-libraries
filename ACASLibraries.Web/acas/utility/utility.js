@@ -204,19 +204,30 @@ acas.module('acas.utility', 'underscorejs', function () {
 				if (isNaN(value)) {
 					return null
 				}
-
+				
 				//handle percent - multiply by 100 before doing all the rounding and stuff
 				if (percent) {
 					value = value * 100
+				}
+
+				//anything smaller than this value is probably zero and is a floating point error
+				//in the past we've had issues with values very close to zero displaying as NaN.00
+				//this is a less-than-ideal way around that problem. 
+				if (Math.abs(value) < 1e-10) { 
+					value = 0
 				}
 
 				var negative = value < 0
 				if (negative) {
 					value = value * -1
 				}
-
-				//take value.toFixed in the next line to handle incredibly small values expressed in exponential notation
-				var rounded = +(Math.round(value.toFixed(20) + ("e+" + maxPrecision)) + ("e-" + maxPrecision))				
+				
+				var rounded = +(Math.round(value + ("e+" + maxPrecision)) + ("e-" + maxPrecision))
+				//if after rounding it's zero, we don't want the negative formatting
+				if (rounded === 0) {
+					negative = false
+				}				
+				
 				var stringValue = rounded.toString()
 				var decimalIndex = stringValue.indexOf('.')
 				var decimal = decimalIndex === -1 ? '' : stringValue.substr(decimalIndex + 1)
@@ -242,7 +253,7 @@ acas.module('acas.utility', 'underscorejs', function () {
 
 				//combine the pieces
 				var result = integer + (decimal !== '' ? '.' + decimal : '')
-
+				
 				//handle percent
 				if (percent) {
 					result = result + '%'
