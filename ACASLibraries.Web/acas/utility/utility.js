@@ -423,7 +423,8 @@ acas.module('acas.utility', 'underscorejs', function () {
 				toBoolean: function (value) {
 					return (value != null && (value === true || value.toString().toLowerCase() == 'true' || value.toString().toLowerCase() == '1'));
 				},
-				toAngularJSQueryString: function (value) {
+				toAngularJSQueryString: function (value, includeNullParameters) {
+					includeNullParameters = typeof includeNullParameters !== undefined ? includeNullParameters : false
 					var buffer = []
 					_.each(value, function (value, key) {
 						_.each(acas.utility.array.forceArray(value), function (v) {
