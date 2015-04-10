@@ -1,4 +1,4 @@
-﻿acas.module('acDatepicker', 'acas.utility', 'acas.ui.angular', function () {
+﻿acas.module('acClickAnywhereButHere', 'acas.utility', 'acas.ui.angular', function () {
 	acas.ui.angular.directive('acClickAnywhereButHere', ['$document', function ($document) {
 		//put on an element to evaluate an expression when anywhere else in the document is clicked
 		//Usage: 

@@ -194,6 +194,12 @@ describe('Formatting --> ', function () {
 			expect(formatting.formatNumber(-1234.451234, null, null, null, null, true)).toBe('(123,445.1234%)')
 			expect(formatting.formatNumber(-1234.451234, 0, 0, null, null, true)).toBe('(123,445%)')
 		})
+
+		it('formatNumber() - tiny values', function () {
+			//there were some issues with numbers like these in the past
+			expect(formatting.formatNumber(-1.4551915228366852e-11)).toBe('(0.00)')
+			expect(formatting.formatNumber(21.4551915228366852e-11)).toBe('0.00')
+		})
 	});
 
 	describe('Validation --> ', function () {

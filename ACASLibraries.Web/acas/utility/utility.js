@@ -200,7 +200,7 @@ acas.module('acas.utility', 'underscorejs', function () {
 					return null
 				}
 
-				value = parseFloat(value)
+				value = parseFloat(value)				
 				if (isNaN(value)) {
 					return null
 				}
@@ -214,13 +214,15 @@ acas.module('acas.utility', 'underscorejs', function () {
 				if (negative) {
 					value = value * -1
 				}
-				var rounded = +(Math.round(value + ("e+" + maxPrecision)) + ("e-" + maxPrecision))
+
+				//take value.toFixed in the next line to handle incredibly small values expressed in exponential notation
+				var rounded = +(Math.round(value.toFixed(20) + ("e+" + maxPrecision)) + ("e-" + maxPrecision))				
 				var stringValue = rounded.toString()
 				var decimalIndex = stringValue.indexOf('.')
 				var decimal = decimalIndex === -1 ? '' : stringValue.substr(decimalIndex + 1)
 				var integer = decimalIndex === -1 ? stringValue : stringValue.substr(0, decimalIndex) || "0"
 				var zeroes = "0000000000000000000000000000000000000000000000000000000000000000000000"
-
+				
 				//pad the zeroes to minPrecision. It's possible that this is hit even though we started longer than maxPrecision, after rounding and removing trailing zeroes
 				if (decimal.length < minPrecision) {
 					decimal = (decimal + zeroes).substr(0, minPrecision)
