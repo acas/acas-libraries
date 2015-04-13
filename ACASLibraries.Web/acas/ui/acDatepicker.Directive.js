@@ -42,7 +42,8 @@
 						.append(jQuery('<span/>')
 							.css('display', 'block')
 							.css('vertical-align', 'middle')	
-							.css('top', '0')					
+							.css('top', '0')
+							.css('padding', '0')					
 							.addClass('glyphicon')
 							.addClass('glyphicon-remove'))
 
