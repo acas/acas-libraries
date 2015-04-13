@@ -181,11 +181,19 @@
 					numberOfMonths: 2,
 					glyphicon: true
 				}
+				
 				// if the eval is successful, extend our defaults
 				if (typeof options === 'object') {
 					jQuery.extend(defaults, options)
 				}
 				options = defaults
+
+				// IE failsafe
+				if (document.documentMode !== undefined) {
+					options.glyphicon = false
+				}
+
+				// set width and height of the datepicker box dynamically
 				jDatePicker.css('border', '1px solid #cccccc')
 					.css('height', options.height)
 					.css('width', options.width)
