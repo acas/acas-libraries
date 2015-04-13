@@ -1,5 +1,6 @@
 ﻿acas.module('acDatepicker', 'acas.utility', 'acas.ui.angular', 'jquery.ui', function () {
 	acas.ui.angular.directive('acDatepicker', [ function () {
+
 		// date format is fixed for now
 		var dateFormat = 'mm/dd/yy'
 
@@ -31,14 +32,19 @@
 					.css('height', '100%')
 					.css('text-align', 'center')
 					.css('border-left', '1px solid lightgrey')
+					.css('cursor', 'pointer')
 					.attr('ng-click', 'clearValue()')
 					.attr('onmouseover', 'this.style.backgroundColor = "lightgrey";')
 					.attr('onmouseout', 'this.style.backgroundColor = "white";')
 					.append(jQuery('<div/>')
-						.addClass('glyphicon')
-						.addClass('glyphicon-remove')
 						.css('vertical-align', 'middle')
 						.css('top', '0'))
+						.append(jQuery('<span/>')
+							.css('display', 'block')
+							.css('vertical-align', 'middle')	
+							.css('top', '0')					
+							.addClass('glyphicon')
+							.addClass('glyphicon-remove'))
 
 		// directive template
 		var template = jQuery('<div/>')
