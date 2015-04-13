@@ -43,9 +43,9 @@
 							.css('display', 'block')
 							.css('vertical-align', 'middle')	
 							.css('top', '0')
-							.css('padding', '0')					
-							.addClass('glyphicon')
-							.addClass('glyphicon-remove'))
+							.css('padding', '0')
+							.css('width', '100%')
+							.css('height', '100%'))
 
 		// directive template
 		var template = jQuery('<div/>')
@@ -173,13 +173,19 @@
 
 				// get input options
 				// account for no options provide barebones defaults
-				var options = angular.fromJson(scope.acDatepickerOptions)
-				options = jQuery.extend({
+				var options = eval('(' + scope.acDatepickerOptions + ')')
+				var defaults = {
 					height: 24,
 					width: 130,
 					bootstrap: true,
-					numberOfMonths: 2
-				}, options)
+					numberOfMonths: 2,
+					glyphicon: true
+				}
+				// if the eval is successful, extend our defaults
+				if (typeof options === 'object') {
+					jQuery.extend(defaults, options)
+				}
+				options = defaults
 				jDatePicker.css('border', '1px solid #cccccc')
 					.css('height', options.height)
 					.css('width', options.width)
@@ -191,6 +197,23 @@
 				// (see MDN/W3C http://stackoverflow.com/questions/22719315/vertical-align-glyphicon-in-bootstrap-3)
 				var removeButtonContainer = datePicker.children().last().children()
 				removeButtonContainer.css('line-height', jDatePicker.css('height'))
+
+				// change the icons depending on what icon type is specified in the options
+				// static property
+				var icon = jDatePicker.children().last().children().last() // should be the span
+				// where the icon resides according to the documentation
+				if (options.glyphicon) {
+					icon.addClass('glyphicon')
+					icon.addClass('glyphicon-remove')
+				} else {
+					// be aware that ui-icon is not scalable, and will break the
+					// scaling on this directive when resizing. Use glyphicon in this case.
+					// in other cases, this is merely fallback
+					icon.addClass('ui-icon')
+					icon.addClass('ui-icon-closethick')
+					// slightly modified position for fit
+					icon.css('background-position', '-95px -125px')
+				}
 
 				// display none on button hide, set the input width (should be dynamic)
 				scope.$watch('acDisabled', function (newValue, oldValue) {
