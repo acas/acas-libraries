@@ -66,7 +66,7 @@
 				acInputClass: '@',
 				acHideClearButton: '=?',
 				acDisabled: '=?',
-				acDatepickerOptions: '@'
+				acDatepickerOptions: '=?'
 			},
 			replace: true,
 			template: template,
@@ -173,7 +173,7 @@
 
 				// get input options
 				// account for no options provide barebones defaults
-				var options = eval('(' + scope.acDatepickerOptions + ')')
+				var options = scope.acDatepickerOptions
 				var defaults = {
 					height: 24,
 					width: 130,
