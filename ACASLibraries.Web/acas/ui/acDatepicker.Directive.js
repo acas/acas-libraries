@@ -291,7 +291,11 @@
 				// capture input from the text field
 				scope.$watch(function () { return scope.acValue }, function (newValue, oldValue) {
 					if (oldValue != newValue) {
-						if (scope.isValidDate(String(newValue)) 
+						if (scope.isDatePartial(newValue)) {
+							scope.acValue = newValue = scope.completeDatePartial(newValue)
+							input.val(acas.utility.formatting.formatDate(newValue))
+							// check for a full date
+					    } else if (scope.isValidDate(String(newValue)) 
 							|| newValue == null 
 							|| newValue == "") {
 							// empty string dates are null
@@ -302,11 +306,7 @@
 							} 
 							input.val(acas.utility.formatting.formatDate(newValue));
 							// check for a partial date match (ie. 2/3)
-						} else if (scope.isDatePartial(newValue)) {
-							scope.acValue = newValue = scope.completeDatePartial(newValue)
-							input.val(acas.utility.formatting.formatDate(newValue))
-							// check for a full date
-					    } else {
+						} else {
 							scope.acValue = acas.utility.formatting.formatDate(oldValue)
 							input.val(acas.utility.formatting.formatDate(oldValue))
 						}
