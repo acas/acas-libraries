@@ -8,7 +8,7 @@ using Microsoft.Interop.Security.AzRoles;
 namespace ACASLibraries.Security
 {
 	/// <summary>
-	/// AzSecurityManager is a wrapper class providing easier functions for interacting with the windows Authorization Manager (Microsoft.Interop.Security.AzRoles.dll)
+	/// azSecurityManager is a wrapper class providing easier functions for interacting with the windows Authorization Manager (Microsoft.Interop.Security.AzRoles.dll)
 	/// <remarks>
 	/// <para>Error hints: "Access Denied" could mean that the OS is incompatible (see method info).</para>
 	/// <para>"Value does not fall within expected range" could mean that one of the parameters being passed is invalid or otherwise in the correct format.</para>
@@ -345,9 +345,9 @@ namespace ACASLibraries.Security
 		/// </summary>
 		public void Debug_CheckState()
 		{
-			TraceWrite("AzSecurityManager.Debug_CheckState", (azStore!=null?"azStore exists":"azStore is null"));
-			TraceWrite("AzSecurityManager.Debug_CheckState", (azApplication!=null?"azApplication exists":"azApplication is null"));
-			TraceWrite("AzSecurityManager.Debug_CheckState", (clientContext!=null?"clientContext exists":"clientContext is null"));
+			TraceWrite("azSecurityManager.Debug_CheckState", (azStore!=null?"azStore exists":"azStore is null"));
+			TraceWrite("azSecurityManager.Debug_CheckState", (azApplication!=null?"azApplication exists":"azApplication is null"));
+			TraceWrite("azSecurityManager.Debug_CheckState", (clientContext!=null?"clientContext exists":"clientContext is null"));
 		}
 		*/
 		#endregion
@@ -390,7 +390,7 @@ namespace ACASLibraries.Security
 		}
 		#endregion
 
-		#region VerifyOperation(); - using handle of current user
+		#region ExecuteVerifyOperation(); - using handle of current user
 		/// <summary>
 		/// Verifies the operation is allowed for the current client context (user) without a defined scope. Automatically creates the client context if none exists.
 		/// </summary>
@@ -446,7 +446,7 @@ namespace ACASLibraries.Security
 		}
 		#endregion
 
-		#region VerifyOperation(); - using specified username and domain
+		#region ExecuteVerifyOperation(); - using specified username and domain
 		/// <summary>
 		/// Verifies the operation is allowed for the current client context (user) without a defined scope. Creates the client context using the specified username/domain if one does not exist for that username/domain.
 		/// </summary>
@@ -829,9 +829,9 @@ namespace ACASLibraries.Security
 		}
 		#endregion
 
-		#region Dispose(); ~AzSecurityManager();
+		#region Dispose(); ~azSecurityManager();
 		/// <summary>
-		/// Releases the resources used by the AzSecurityManager
+		/// Releases the resources used by the azSecurityManager
 		/// </summary>
 		public void Dispose()
 		{
@@ -839,7 +839,7 @@ namespace ACASLibraries.Security
 			GC.SuppressFinalize(this);
 		}
 		/// <summary>
-		/// Releases the resources used by the AzSecurityManager (internally)
+		/// Releases the resources used by the azSecurityManager (internally)
 		/// </summary>
 		/// <param name="disposing">Flag if the method is disposing</param>
 		private void Dispose(bool disposing)

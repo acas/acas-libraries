@@ -16,8 +16,8 @@ namespace ACASLibraries.Security
 		/// </summary>
 		/// <typeparam name="TOperations">Enum of operations where value of each enum member is an integer that matches an operation id in Authorization Manager.</typeparam>
 		/// <typeparam name="TScopes">Enum of scope operations where the scope name where the enum member's description attribute or member name matches a defined scope in Authorization Manager.</typeparam>
-		/// <param name="operations">Operations enum value to be verified.</param>
-		/// <param name="scope">Scope of operations. Uses the description attribute of the scope if defined, otherwise uses the string equivalent of the enum value's member name.</param>
+		/// <param name="operations">operations enum value to be verified.</param>
+		/// <param name="scope">scope of operations. Uses the description attribute of the scope if defined, otherwise uses the string equivalent of the enum value's member name.</param>
 		/// <returns>Boolean array indexed by same index as operations.</returns>
 		public static bool[] VerifyOperations<TOperations,TScopes>(TOperations[] operations, TScopes scope) where TOperations : struct where TScopes : struct
 		{
@@ -35,8 +35,8 @@ namespace ACASLibraries.Security
 		/// Verifies multiple operations for a single scope.
 		/// <para>Uses the configured authorization manager connection string to perform the validation check.</para>
 		/// </summary>
-		/// <param name="operations">Operations to be verified.</param>
-		/// <param name="scope">Scope of operations.</param>
+		/// <param name="operations">operations to be verified.</param>
+		/// <param name="scope">scope of operations.</param>
 		/// <returns>Boolean array indexed by same index as operations.</returns>
 		public static bool[] VerifyOperations(int[] operations, string scope)
 		{
@@ -73,7 +73,7 @@ namespace ACASLibraries.Security
 		}
 		#endregion
 
-		#region VerifyOperation();
+		#region ExecuteVerifyOperation();
 		/// <summary>
 		/// Verifies a single operation for a single scope. Recommended to use VerifyOperations() if verifying more than one operation or scope on a page load.
 		/// <para>TOperations and TScopes must be an enum type. The TOperations enum must have int values assigned to each item.</para>
@@ -82,8 +82,8 @@ namespace ACASLibraries.Security
 		/// </summary>
 		/// <typeparam name="TOperations">Enum of operations where value of each enum member is an integer that matches an operation id in Authorization Manager.</typeparam>
 		/// <typeparam name="TScopes">Enum of scope operations where the scope name where the enum member's description attribute or member name matches a defined scope in Authorization Manager.</typeparam>
-		/// <param name="operation">Operation enum value to be verified.</param>
-		/// <param name="scope">Scope the operation is subject.</param>
+		/// <param name="operation">operation enum value to be verified.</param>
+		/// <param name="scope">scope the operation is subject.</param>
 		/// <returns>True if authorized, false if not.</returns>
 		public static bool VerifyOperation<TOperations,TScopes>(TOperations operation, TScopes scope) where TOperations : struct where TScopes : struct
 		{
@@ -107,11 +107,11 @@ namespace ACASLibraries.Security
 			return authorized;
 		}
 		/// <summary>
-		/// Verifies a single operation for a single scope using an open AzSecurityManager object. Recommended to use VerifyOperations() if verifying more than one operation or scope on a page load.
+		/// Verifies a single operation for a single scope using an open azSecurityManager object. Recommended to use VerifyOperations() if verifying more than one operation or scope on a page load.
 		/// </summary>
 		/// <param name="operation">Integer value of operation to be verified.</param>
 		/// <param name="scope">String name of scope the operation is subject.</param>
-		/// <param name="azSecurityManager">An open and connection AzSecurityManager object.</param>
+		/// <param name="azSecurityManager">An open and connection azSecurityManager object.</param>
 		/// <returns>True if authorized, false if not.</returns>
 		private static bool VerifyOperation(int operation, string scope, ref AzSecurityManager azSecurityManager)
 		{
