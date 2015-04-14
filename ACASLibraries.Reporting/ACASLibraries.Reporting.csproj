@@ -107,13 +107,23 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="bin\BusinessObjects.DSWS.BICatalog.dll" />
-    <Content Include="bin\BusinessObjects.DSWS.BIPlatform.dll" />
-    <Content Include="bin\BusinessObjects.DSWS.dll" />
+    <Content Include="bin\BusinessObjects.DSWS.BICatalog.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="bin\BusinessObjects.DSWS.BIPlatform.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="bin\BusinessObjects.DSWS.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="bin\NotInUse\BusinessObjects.DSWS.Publish.dll" />
     <Content Include="bin\NotInUse\BusinessObjects.DSWS.QueryService.dll" />
-    <Content Include="bin\BusinessObjects.DSWS.ReportEngine.dll" />
-    <Content Include="bin\BusinessObjects.DSWS.Session.dll" />
+    <Content Include="bin\BusinessObjects.DSWS.ReportEngine.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="bin\BusinessObjects.DSWS.Session.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ACASLibraries\ACASLibraries.csproj">
