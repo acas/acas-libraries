@@ -69,26 +69,6 @@
     <Optimize>true</Optimize>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="BusinessObjects.DSWS, Version=11.5.4100.0, Culture=neutral, PublicKeyToken=692fbea5521e1304">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>bin\BusinessObjects.DSWS.dll</HintPath>
-    </Reference>
-    <Reference Include="BusinessObjects.DSWS.BICatalog, Version=11.5.4100.0, Culture=neutral, PublicKeyToken=692fbea5521e1304">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>bin\BusinessObjects.DSWS.BICatalog.dll</HintPath>
-    </Reference>
-    <Reference Include="BusinessObjects.DSWS.BIPlatform, Version=11.5.4100.0, Culture=neutral, PublicKeyToken=692fbea5521e1304">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>bin\BusinessObjects.DSWS.BIPlatform.dll</HintPath>
-    </Reference>
-    <Reference Include="BusinessObjects.DSWS.ReportEngine, Version=11.5.4100.0, Culture=neutral, PublicKeyToken=692fbea5521e1304">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>bin\BusinessObjects.DSWS.ReportEngine.dll</HintPath>
-    </Reference>
-    <Reference Include="BusinessObjects.DSWS.Session, Version=11.5.4100.0, Culture=neutral, PublicKeyToken=692fbea5521e1304">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>bin\BusinessObjects.DSWS.Session.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.configuration" />
     <Reference Include="System.Core" />
@@ -102,34 +82,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BusinessObjects3\BOReportAdapter.cs" />
     <Compile Include="BusinessObjects4\BORestAdapter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="bin\BusinessObjects.DSWS.BICatalog.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="bin\BusinessObjects.DSWS.BIPlatform.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="bin\BusinessObjects.DSWS.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="bin\NotInUse\BusinessObjects.DSWS.Publish.dll" />
-    <Content Include="bin\NotInUse\BusinessObjects.DSWS.QueryService.dll" />
-    <Content Include="bin\BusinessObjects.DSWS.ReportEngine.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="bin\BusinessObjects.DSWS.Session.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ACASLibraries\ACASLibraries.csproj">
       <Project>{5C8875C8-AA6C-40C5-A497-122A18EA7670}</Project>
       <Name>ACASLibraries</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="bin\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
