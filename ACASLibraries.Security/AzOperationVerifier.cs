@@ -16,48 +16,28 @@ namespace ACASLibraries.Security {
 		/// <summary>
 		/// Specifies the "none" scope. During operation verifications, if the none scope is passed then the operation will be verified without a specified scope (aka none or root scope).
 		/// </summary>
-		public string RootScopeAlias = "None";
-
+		public static string RootScopeAlias = "None";
 		/// <summary>
 		/// Specifies whether operation verification results should be cached. Default is FALSE.
 		/// </summary>
-		public bool CacheOperationVerifications {
-			get {
-				return cacheOperationVerifications;
-			}
-			set {
-				Monitor.Enter(threadLock);
-				if(!cacheOperationVerifications) {
-					//tear down cache
-					operationVerificationCache.Clear(); //not sure if this step is necessary; added to signal garbage collection
-				}
-				cacheOperationVerifications = value;
-				Monitor.Exit(threadLock);
-			}
-		}
+		public static bool CacheOperationVerifications = true;
 		/// <summary>
 		/// Specifies the length of time that an operation verification should be cached. Default is 20 minutes.
 		/// </summary>
-		public TimeSpan OperationVerificationCacheExpiration = new TimeSpan(0, 20, 0);
+		public static TimeSpan OperationVerificationCacheExpiration = new TimeSpan(0, 20, 0);
 		#endregion
 
 		#region private properties
-		private Object threadLock = new Object();
-		private bool cacheOperationVerifications = false;
-		private ConcurrentDictionary<Tuple<string, string, int>, AzOperationVerificationResult> operationVerificationCache = new ConcurrentDictionary<Tuple<string, string, int>, AzOperationVerificationResult>();
+		private static Object threadLock = new Object();
+		private static ConcurrentDictionary<Tuple<string, string, int>, AzOperationVerificationResult> operationVerificationCache = new ConcurrentDictionary<Tuple<string, string, int>, AzOperationVerificationResult>();
 		private AzSecurityManager azSecurityManagerInstance = null;
 		#endregion
 
 		#region ClearOperationVerificationCache();
 		public void ClearOperationVerificationCache() {
-			lock(threadLock) {
-				if(cacheOperationVerifications) { 
-					operationVerificationCache.Clear();
-				}
-				else {
-					throw new Exception("Operation verification cache not enabled");
-				}
-			}
+			Monitor.Enter(threadLock);
+			operationVerificationCache.Clear();
+			Monitor.Exit(threadLock);
 		}
 		#endregion
 
@@ -162,7 +142,7 @@ namespace ACASLibraries.Security {
 		private bool TryVerifyCachedOperation(string scope, int operation, out bool authorized) {
 			bool hasCachedValue = false;
 			authorized = false;
-			if(cacheOperationVerifications) {
+			if(CacheOperationVerifications) {
 				AzOperationVerificationResult cachedVerificationResult;
 				Tuple<string, string, int> cacheKey = Tuple.Create<string, string, int>(UserManager.Username, scope, operation);
 				if(operationVerificationCache.TryGetValue(cacheKey, out cachedVerificationResult)) {
@@ -180,7 +160,7 @@ namespace ACASLibraries.Security {
 			return hasCachedValue;
 		}
 		private bool CacheOperationVerification(string scope, int operation, bool authorized) {
-			if(cacheOperationVerifications) {
+			if(CacheOperationVerifications) {
 				operationVerificationCache.AddOrUpdate(Tuple.Create<string, string, int>(UserManager.Username, scope, operation), x => new AzOperationVerificationResult(authorized), (x, y) => new AzOperationVerificationResult(authorized));
 			}
 			return authorized;
