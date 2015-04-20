@@ -374,7 +374,7 @@ namespace ACASLibraries
 		/// </summary>
 		/// <param name="sqlObjectName">The name of the proc/function</param>
 		/// <param name="sqlObjectType">The type of the object (proc or function)</param>
-		/// <param name="parameters">An array of input parameters to run the proc or function with</param>
+		/// <param name="parameter">A single input parameter to run the proc or function with</param>
 		/// <param name="timeout">The SqlCommand.CommandTimeout to wait before terminating the command.</param>
 		/// <returns>The result of the scalar valued function or the first column of the first row of the result set the proc returns.</returns>
 		public object GetScalar(string sqlObjectName, SqlObjectType sqlObjectType, SqlParameter parameter, int? timeout = null)
@@ -537,7 +537,17 @@ namespace ACASLibraries
 		/// <summary>
 		/// Enum containing executable sql objects (procs, functions, etc) supported by DataAccess.
 		/// </summary>
-		public enum SqlObjectType { StoredProcedure, ScalarValuedFunction }
+		public enum SqlObjectType 
+		{ 
+			/// <summary>
+			/// SQL Stored Procedure
+			/// </summary>
+			StoredProcedure, 
+			/// <summary>
+			/// SQL Scalar Valued Function (as opposed to a table-valued function)
+			/// </summary>
+			ScalarValuedFunction 
+		}
 	}
 
 }

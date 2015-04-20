@@ -33,9 +33,7 @@ namespace ACASLibraries
 	/// </summary>
 	public class Pager
 	{
-		/// <summary>
-		/// 
-		/// </summary>
+
 		public const int INT_MAX = 2147483647;
 
 		#region private properties
