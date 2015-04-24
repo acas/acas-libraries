@@ -1,31 +1,33 @@
 ﻿'use strict';
 
-acas.module('acTypeahead', 'acas.ui.angular', 'select2', 'underscorejs', function () {
-
+acas.module('acTypeahead', 'acas.ui.angular', 'underscorejs', function () {
 	acas.ui.angular.directive('acTypeahead', ['$timeout', '$window', '$compile', '$http', function ($timeout, $window, $compile, $http) {
-
-
 		return {
 			restrict: 'E',
 			require: ['ngModel'],
-			scope: {
-				acSearchPath: '@',
+			scope: {				
 				ngModel: '=',
-				acTypeaheadOptions: '=', //{idProperty: 'id'}								
+				acTypeaheadOptions: '=', //see config object below for defaults
 				acReadonly: '=',
 				acDisplay: '=',
-				acDisabled: '=',
-				acInputClass: '@' //any class/styling you would like to add to the control
+				ngDisabled: '='				
 			},
 			replace: true,
 			link: function (scope, element) {
 				var config = _.extend({
 					idProperty: 'id',
 					selectionFormat: 'name',
+					searchPath: '', //if searchPath is used, it will override data/dataSearch
+					data: null, //array of objects
+					dataSearch: 'name', //either function or name of property
 					optionFormat: function (item) { return item.name },
 					inputClass: 'form-control'
 				}, scope.acTypeaheadOptions)
 				scope.config = config //so that it can be accessed in the template
+
+				if (!scope.config.searchPath && !scope.config.data) {
+					throw 'ERROR: acTypeahead must use either searchPath or both data and dataSearch. Please see acas libraries code.'
+				}
 
 				scope.showBox = false
 				scope.activeItem = -1
@@ -34,6 +36,29 @@ acas.module('acTypeahead', 'acas.ui.angular', 'select2', 'underscorejs', functio
 
 				var count = 0
 				var value
+
+				var getData = function (search) {
+					var deferred = $q.defer()
+					if (scope.config.searchPath) {
+						$http({ method: 'GET', url: scope.config.searchPath, params: { query: search } })
+							.success(function (data) {
+								deferred.resolve(data)
+							})
+					} else {
+						var results
+						if (typeof (scope.config.dataSearch) === 'function') {
+							results = scope.config.dataSearch(scope.config.data, search)
+						} else { //should be a string
+							results = _.filter(scope.data, function (x) {
+								return x[scope.config.dataSearch].toString().toLowerCase().indexOf(search.toLowerCase()) !== -1
+							})
+						}
+						deferred.resolve(results)
+					}
+					return deferred.promise
+					
+				}
+				
 				var search = function (showResults) {
 					//perform the search, update scope.searchResults					
 					count++
@@ -41,19 +66,17 @@ acas.module('acTypeahead', 'acas.ui.angular', 'select2', 'underscorejs', functio
 					$timeout(function () {
 						if (count !== current) return //don't run too many search if the user is typing fast, only the last should be run
 						if (input && input.val().trim().length > 2) {
-							$http({ method: 'GET', url: scope.acSearchPath, params: { query: input.val().trim() } })
-								.success(function (data) {
-									$timeout(function () {
-										scope.$apply(function () {
-											scope.searchResults = data
-											scope.activeItem = -1
-											if (showResults) {
-												scope.showBox = true
-											}
-										})
+							getData(input.val().trim()).then(function (data) {
+								$timeout(function () {
+									scope.$apply(function () {
+										scope.searchResults = data
+										scope.activeItem = -1
+										if (showResults) {
+											scope.showBox = true
+										}
 									})
 								})
-
+							})														
 						}
 						else {
 							$timeout(function () {
@@ -75,7 +98,7 @@ acas.module('acTypeahead', 'acas.ui.angular', 'select2', 'underscorejs', functio
 						element.html('<span>{{display}}</>')
 					}
 					else {
-						var inputTemplate = '<input class="ac-typeahead {{config.inputClass}}" placeholder="Search..."  ng-model="display" ng-disabled="acDisabled"/>'
+						var inputTemplate = '<input class="ac-typeahead {{config.inputClass}}" placeholder="Search..."  ng-model="display" ng-disabled="ngDisabled"/>'
 						var dropdownTemplatePre = '<div ng-show="showBox" class="ac-typeahead-dropdown" tabindex="-1">'
 						var optionTemplateHtml = '<div class="ac-typeahead-dropdown-item" ng-class="{active: activeItem === $index}" ng-repeat="item in searchResults" ng-click="selectItem(item)" ng-bind-html="config.optionFormat(item)"></div>'
 						var noResultsTemplate = '<div class="ac-typeahead-dropdown-item no-results" ng-show="!searchResults.length">No Results Found</div>'
