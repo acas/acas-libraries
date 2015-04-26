@@ -27,8 +27,7 @@ acas.module('acTypeahead', 'acas.ui.angular', 'underscorejs', function () {
 				scope.config = config //so that it can be accessed in the template
 
 				if (!scope.config.searchPath && !scope.config.data) {
-					// commenting for now - throws error when page loads before data
-					//throw 'ERROR: acTypeahead must use either searchPath or both data and dataSearch. Please see acas libraries code.'
+					throw 'ERROR: acTypeahead must use either searchPath or both data and dataSearch. Please see acas libraries code.'
 				}
 
 				if (scope.config.optionFormat && typeof (scope.config.optionFormat) !== 'function') {
