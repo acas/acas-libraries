@@ -266,13 +266,16 @@ namespace ACASLibraries.Security
 				WindowsIdentity identity = null;
 				if(HttpContext.Current != null && HttpContext.Current.User.Identity is WindowsIdentity)
 				{
+					//this happens when we use WindowsAuthentication
 					identity = (WindowsIdentity)HttpContext.Current.User.Identity;
 				}
 				else if (HttpContext.Current != null)
 				{
-					using (PrincipalContext context = new PrincipalContext(System.DirectoryServices.AccountManagement.ContextType.Domain))
+					//We're probably using FormsAuthentication. Lookup the account and get a corresponding WindowsIdentity					
+					//assumes the FormsIdentity is in the format DOMAIN\username
+					using (PrincipalContext context = new PrincipalContext(System.DirectoryServices.AccountManagement.ContextType.Domain, HttpContext.Current.User.Identity.Name.Split('\\')[0]))
 					{
-						using (var user = UserPrincipal.FindByIdentity(context, IdentityType.SamAccountName, HttpContext.Current.User.Identity.Name))
+						using (UserPrincipal user = UserPrincipal.FindByIdentity(context, IdentityType.SamAccountName, HttpContext.Current.User.Identity.Name))
 						{
 							identity = new WindowsIdentity(user.UserPrincipalName);
 						}
