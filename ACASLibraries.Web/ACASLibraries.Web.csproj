@@ -39,6 +39,7 @@
     <Content Include="acas\ui\block-ui\acBlockUiManager.Service.js" />
     <Content Include="acas\ui\ui.test.js" />
     <Content Include="acas\utility\acDataCache.Service.js" />
+    <Content Include="acas\utility\acSignalRService.js" />
     <Content Include="acas\utility\acToArray.Filter.js" />
     <Content Include="acas\utility\utility.js" />
     <Content Include="lib\angular-mocks.js" />
