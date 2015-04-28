@@ -14,6 +14,12 @@ acas.module('acSignalRService', 'acas.utility.angular', 'jQuery', 'underscorejs'
                             pings: [],
                             _: (connection ? connection : {})
                         }
+                        if (newHub.connection) {
+                        	newHub.connection.disconnected(utilities.disconnectedHandler)
+                        	newHub.connection.reconnecting(utilities.reconnectingHandler)
+                        	newHub.connection.reconnected(utilities.reconnectedHandler)
+                        	newHub.connection.connectionSlow(utilities.slowConnectionHandler)
+                        }
                         if (newHub.connection.start) {
                             newHub.connection.start()
                         }
@@ -21,8 +27,9 @@ acas.module('acSignalRService', 'acas.utility.angular', 'jQuery', 'underscorejs'
                     }
                     this.updateHubNames()
                 },
-                getCurrentHubs: function () {
-                    if (jQuery.connection) {
+                getAvailableHubs: function () {
+                	// check for jQuery signalr lib
+                    if (jQuery.signalR) {
                         var connectionKeys = _.keys(jQuery.connection)
                         for (var i = 0; i < connectionKeys.length; i++) {
                             // the hubName property is indicative of the automatically 
@@ -34,19 +41,19 @@ acas.module('acSignalRService', 'acas.utility.angular', 'jQuery', 'underscorejs'
                         }
                     }
                 },
-                destroyCurrentHubs: function () {
+                destroyHubs: function () {
                     for (var i = 0; i < utilities.hubs.length; i++) {
                         // stop the connection
-                        this.endAllHubPings(utilities.hubs[i].name)
+                        this.endHubPings(utilities.hubs[i].name)
                         if (utilities.hubs[i].connection.stop) {
                             utilities.hubs[i].connection.stop()
                         }
                         utilities.hubs.splice(i, 1)
                     }
                 },
-                refreshCurrentHubs: function () {
-                    this.destroyCurrentHubs()
-                    this.getCurrentHubs()
+                refreshHubs: function () {
+                    this.destroyHubs()
+                    this.getAvailableHubs()
                 },
                 findHub: function (hubName) {
                     return _.find(utilities.hubs, function (hub) { return hub.name === hubName })
@@ -57,15 +64,15 @@ acas.module('acSignalRService', 'acas.utility.angular', 'jQuery', 'underscorejs'
                         hub.methods[methodName].apply(this, args)
                     }
                 },
-                invokeHubMethodPing: function (hubName, methodName, intervalMillis, args) {
+                invokeHubMethodPing: function (intervalMillis, hubName, methodName, args) {
                     var hub = this.findHub(hubName)
                     if (hub && _.has(hub.methods, methodName)) {
-                        var ps = new this.pingFactory()
-                        ps.startPingCallback(intervalMillis, hub.methods[methodName], args)
-                        hub.pings.push({ method: methodName, pinger: ps })
+                        var p = new this.pingFactory()
+                        p.startPingCallback(intervalMillis, hub.methods[methodName], args)
+                        hub.pings.push({ method: methodName, pinger: p })
                     }
                 },
-                endAllHubPings: function (hubName) {
+                endHubPings: function (hubName) {
                     var hub = this.findHub(hubName)
                     if (hub) {
                         for (var i = 0; i < hub.pings.length; i++) {
@@ -74,7 +81,7 @@ acas.module('acSignalRService', 'acas.utility.angular', 'jQuery', 'underscorejs'
                         }
                     }
                 },
-                endAllHubMethodPings: function (hubName, methodName) {
+                endHubMethodPings: function (hubName, methodName) {
                     var hub = this.findHub(hubName)
                     if (hub && _.has(hub.methods, methodName)) {
                         for (var i = 0; i < hub.pings.length; i++) {
@@ -97,9 +104,9 @@ acas.module('acSignalRService', 'acas.utility.angular', 'jQuery', 'underscorejs'
                             name: hub.name,
                             methods: _.map(
                                      _.keys(hub.methods),
-                                     function (methodName) {
-                                         return { name: methodName }
-                                     })
+	                        function (methodName) {
+	                            return { name: methodName }
+	                        })
                         }
                     })
                 },
@@ -110,6 +117,8 @@ acas.module('acSignalRService', 'acas.utility.angular', 'jQuery', 'underscorejs'
                         currentMillis: 0,
                         intervalMillis: 10,
                         intervalObj: null,
+                        granularity: 10,
+                        iterations: 0,
                         callback: function () { },
                         args: [],
                         timerStartFn: function (startMillis, intervalMillis, callbackFn, args) {
@@ -130,12 +139,14 @@ acas.module('acSignalRService', 'acas.utility.angular', 'jQuery', 'underscorejs'
                                 if (self.running === false) {
                                     // or clearInterval
                                     $interval.cancel(self.intervalObj)
+                                    self.iterations = 0
                                 }
                                 if (self.currentMillis <= 0) {
                                     self.currentMillis = self.startMillis
                                     self.callback.apply(this, self.args)
                                 }
                                 self.currentMillis -= 1
+                                self.iterations++
                             })
                         },
                         timerEndFn: function () {
@@ -146,12 +157,12 @@ acas.module('acSignalRService', 'acas.utility.angular', 'jQuery', 'underscorejs'
                     var api = {
                         startPing: function (millis) {
                             if (!utilities.running) {
-                                utilities.timerStartFn(millis, 10)
+                                utilities.timerStartFn(millis, utilities.granularity)
                             }
                         },
                         startPingCallback: function (millis, callback, args) {
                             if (!utilities.running) {
-                                utilities.timerStartFn(millis, 10, callback, args)
+                                utilities.timerStartFn(millis, utilities.granularity, callback, args)
                             }
                         },
                         endPing: function () {
@@ -161,46 +172,76 @@ acas.module('acSignalRService', 'acas.utility.angular', 'jQuery', 'underscorejs'
                         },
                         value: function () {
                             return utilities.currentMillis
+                        },
+                        zeroIterations: function() {
+                        	utilities.iterations = 0
                         }
                     }
                     return api
                 },
+                disconnectedHandler: function() {
+                	// this is an error case, attempt reconnect
+                	var p = new pingFactory()
+                	if (jQuery.signalR) {
+	                	p.startPingCallback(5000, function() {
+	                		var anyDisconnected = false
+	                		for (var i = 0; i < this.hubs.length; i++) {
+	                			if (this.hubs[i].connection.state === 
+	                				jQuery.signalR.connectionState.disconnected) {
+	                				this.hubs[i].connection.start()
+	                				anyDisconnected = true
+	                			}
+	                		}
+	                		if (!anyDisconnected) {
+	                			p.endPing()
+	                		}
+	                	}, [])
+                	}
+                },
+                slowConnectionHandler: function() {
+                	// implement slow connection handling
+                	alert('Connection is slow') // please replace!
+                },
+                reconnectingHandler: function() {
+                	// implement the reconnecting handler
+                	alert('Reconnecting') // please replace!
+                },
+                reconnectedHandler: function() {
+                	// implement the reconnected handler
+                	alert('Reconnected') // please replace!
+                },
                 initialize: function () {
-                    this.getCurrentHubs()
+                    this.getAvailableHubs()
                     // test functions, always initialize after refreshing the hubs list
                     /*
                         this.addHubListener('echohub', 'echo', function (data) { console.log('eccchhhhoooooooo: ', data) })
-                        this.invokeHubMethodPing('echohub', 'echo', 500, ['blah'])
+                        this.invokeHubMethodPing(500, 'echohub', 'echo', ['blah'])
                     */
                 }
             }
 
             var api = {
-                // hubsInternal: utilities.hubs, -- debug, only names should be externally exposed
                 hubs: [],
-                // use at your own risk (no hubs may be available when trying to add one)
-                addHub: function (hubName) {
-                    utilities.addHub(hubName)
-                },
-                // in case you loaded this module after SignalR, this may be required
+                // in case you loaded this module after SignalR, a call to this may be required
+                // also good in case you want to attempt reconnection
                 refresh: function () {
-                    utilities.refreshCurrentHubs()
+                    utilities.refreshHubs()
                 },
                 invokeHubMethod: function (hubName, methodName, args) {
                     utilities.invokeHubMethod(hubName, methodName, args)
                 },
-                invokeHubMethodPing: function (hubName, methodName, intervalMillis, args) {
-                    utilities.invokeHubMethodPing(hubName, methodName, intervalMillis, args)
+                invokeHubMethodPing: function (intervalMillis, hubName, methodName, args) {
+                    utilities.invokeHubMethodPing(intervalMillis, hubName, methodName, args)
                 },
-                endAllHubMethodPings: function (hubName, methodName) {
-                    utilities.endAllHubMethodPings(hubName, methodName)
+                endHubMethodPings: function (hubName, methodName) {
+                    utilities.endHubMethodPings(hubName, methodName)
                 },
                 addHubListener: function (hubName, methodName, receiverFn) {
                     utilities.addHubListener(hubName, methodName, receiverFn)
                 },
                 // stop all live connections with the server
-                destroyAllHubs: function () {
-                    utilities.destroyCurrentHubs()
+                destroy: function () {
+                    utilities.destroyHubs()
                 }
             }
             utilities.initialize()
