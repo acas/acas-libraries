@@ -4,6 +4,7 @@ using System.Configuration;
 using System.Security.Principal;
 using System.Web;
 using Microsoft.Interop.Security.AzRoles;
+using System.DirectoryServices.AccountManagement;
 
 namespace ACASLibraries.Security
 {
@@ -263,9 +264,19 @@ namespace ACASLibraries.Security
 			if(azApplication != null)
 			{
 				WindowsIdentity identity = null;
-				if(HttpContext.Current != null)
+				if(HttpContext.Current != null && HttpContext.Current.User.Identity is WindowsIdentity)
 				{
 					identity = (WindowsIdentity)HttpContext.Current.User.Identity;
+				}
+				else if (HttpContext.Current != null)
+				{
+					using (PrincipalContext context = new PrincipalContext(System.DirectoryServices.AccountManagement.ContextType.Domain))
+					{
+						using (var user = UserPrincipal.FindByIdentity(context, IdentityType.SamAccountName, HttpContext.Current.User.Identity.Name))
+						{
+							identity = new WindowsIdentity(user.UserPrincipalName);
+						}
+					}
 				}
 				else
 				{
