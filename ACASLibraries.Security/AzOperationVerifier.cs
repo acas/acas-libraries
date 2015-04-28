@@ -10,162 +10,34 @@ using System.Web;
 using ACASLibraries;
 
 namespace ACASLibraries.Security {
-	/// <typeparam name="TOperations">Enum of operations where value of each enum member is an integer that matches an operation id in Authorization Manager.</typeparam>
-	/// <typeparam name="TScopes">Enum of scope operations where the scope name where the enum member's description attribute or member name matches a defined scope in Authorization Manager.</typeparam>
-	public class AzSecurityManagerCachedThreadSafe<TOperations, TScopes>
-		where TScopes : struct, IConvertible
-		where TOperations : struct, IConvertible {
+	public class AzOperationVerifier {
 
 		#region public properties
 		/// <summary>
-		/// Specifies (explicitly or via override) the user domain. This is used to obtain the user's principal and email address.
-		/// </summary>
-		public static string ApplicationDomain = null;
-		/// <summary>
 		/// Specifies the "none" scope. During operation verifications, if the none scope is passed then the operation will be verified without a specified scope (aka none or root scope).
 		/// </summary>
-		public TScopes? NoneScope {
-			get {
-				return noneScope;
-			}
-			set {
-				if(value != null) {
-					noneScope = value;
-					noneScopeName = Enum.GetName(value.GetType(), value);
-				}
-				else {
-					noneScope = null;
-					noneScopeName = null;
-				}
-			}
-		}
-
+		public static string RootScopeAlias = "None";
 		/// <summary>
 		/// Specifies whether operation verification results should be cached. Default is FALSE.
 		/// </summary>
-		public bool CacheOperationVerifications {
-			get {
-				return cacheOperationVerifications;
-			}
-			set {
-				Monitor.Enter(threadLock);
-				if(!cacheOperationVerifications) {
-					//tear down cache
-					operationVerificationCache.Clear(); //not sure if this step is necessary; added to signal garbage collection
-				}
-				cacheOperationVerifications = value;
-				Monitor.Exit(threadLock);
-			}
-		}
+		public static bool CacheOperationVerifications = true;
 		/// <summary>
 		/// Specifies the length of time that an operation verification should be cached. Default is 20 minutes.
 		/// </summary>
-		public TimeSpan OperationVerificationCacheExpiration = new TimeSpan(0, 20, 0);
+		public static TimeSpan OperationVerificationCacheExpiration = new TimeSpan(0, 20, 0);
 		#endregion
 
 		#region private properties
-		private TScopes? noneScope = null;
-		private string noneScopeName = null;
-
 		private static Object threadLock = new Object();
-		private bool cacheOperationVerifications = false;
-		private ConcurrentDictionary<string, ConcurrentDictionary<string, ConcurrentDictionary<int,OperationVerificationResult>>> operationVerificationCache = new ConcurrentDictionary<string,ConcurrentDictionary<string, ConcurrentDictionary<int,OperationVerificationResult>>>();
+		private static ConcurrentDictionary<Tuple<string, string, int>, AzOperationVerificationResult> operationVerificationCache = new ConcurrentDictionary<Tuple<string, string, int>, AzOperationVerificationResult>();
 		private AzSecurityManager azSecurityManagerInstance = null;
 		#endregion
 
 		#region ClearOperationVerificationCache();
 		public void ClearOperationVerificationCache() {
-			lock(threadLock) {
-				if(cacheOperationVerifications) { 
-					operationVerificationCache.Clear();
-				}
-				else {
-					throw new Exception("Operation verification cache not enabled");
-				}
-			}
-		}
-		#endregion
-
-		#region GetUsername();
-		public static string GetUsername() {
-			string username = null;
-			if(ServiceSecurityContext.Current != null && ServiceSecurityContext.Current.WindowsIdentity != null) {
-				username = ServiceSecurityContext.Current.WindowsIdentity.Name;
-			}
-			if(string.IsNullOrEmpty(username)) {
-				username = UserManager.Username;
-			}
-			return username;
-		}
-		#endregion
-
-		#region GetUserPrincipal();
-		public static UserPrincipal GetUserPrincipal() {
-			try {
-				if(!string.IsNullOrEmpty(ApplicationDomain)) {
-					return UserPrincipal.FindByIdentity(new PrincipalContext(ContextType.Domain, ApplicationDomain), IdentityType.SamAccountName, GetUsername());
-				}
-			}
-			catch(Exception ex) {
-				Logger.LogError(ex);
-			}
-			return null;
-		}
-		#endregion
-
-		#region GetUserGuid();
-		public static string GetUserGuid() {
-			Principal userPrincipal = GetUserPrincipal();
-			if(userPrincipal != null) {
-				Guid? userGuid = userPrincipal.Guid;
-				if(userGuid != null) {
-					return userGuid.Value.ToString();
-				}
-				else {
-					return null;
-				}
-			}
-			else {
-				return null;
-			}
-		}
-		#endregion
-
-		#region GetUserEmailAddress();
-		public static string GetUserEmailAddress() {
-			string emailAddress = null;
-			try {
-				UserPrincipal userPrincipal = GetUserPrincipal();
-				if(userPrincipal != null) {
-					emailAddress = userPrincipal.EmailAddress;
-				}
-			}
-			catch(Exception ex) {
-				Logger.LogError(ex);
-			}
-			return emailAddress;
-		}
-		#endregion
-
-		#region RemoveDomain(); VerifyCurrentUser();
-		private static string RemoveDomain(string username) {
-			string result;
-			int startIndex = username.IndexOf("\\");
-			if(startIndex > 0) {
-				result = username.Substring(startIndex + 1);
-			}
-			else {
-				result = username;
-			}
-			return result;
-		}
-
-		public static bool VerifyCurrentUser(string username) {
-			bool result = false;
-			if(RemoveDomain(GetUsername()) == RemoveDomain(username)) {
-				result = true;
-			}
-			return result;
+			Monitor.Enter(threadLock);
+			operationVerificationCache.Clear();
+			Monitor.Exit(threadLock);
 		}
 		#endregion
 
@@ -198,12 +70,16 @@ namespace ACASLibraries.Security {
 		/// <param name="operations">operations to be verified</param>
 		/// <param name="scope">scope of operations</param>
 		/// <returns>Boolean array indexed by same index as operations.</returns>
-		public bool[] VerifyOperations(TOperations[] operations, TScopes scope) {
+		/// <typeparam name="TOperations">Enum of operations where value of each enum member is an integer that matches an operation id in Authorization Manager.</typeparam>
+		/// <typeparam name="TScopes">Enum of scope operations where the scope name where the enum member's description attribute or member name matches a defined scope in Authorization Manager.</typeparam>
+		public bool[] VerifyOperations<TScopes, TOperations>(TScopes scope, TOperations[] operations)
+			where TScopes : struct, IConvertible
+			where TOperations : struct, IConvertible {
 			int[] operationsIntArray = new int[operations.Length];
 			for(int x = 0; x < operations.Length; x++) {
 				operationsIntArray[x] = Convert.ToInt32(operations[x]);
 			}
-			return VerifyOperations(operationsIntArray, scope.ToString());
+			return VerifyOperations(scope.ToString(), operationsIntArray);
 		}
 		/// <summary>
 		/// Verifies multiple operations for a single scope
@@ -211,10 +87,10 @@ namespace ACASLibraries.Security {
 		/// <param name="operations">operations to be verified</param>
 		/// <param name="scope">scope of operations</param>
 		/// <returns>Boolean array indexed by same index as operations.</returns>
-		public bool[] VerifyOperations(int[] operations, string scope) {
+		public bool[] VerifyOperations(string scope, int[] operations) {
 			bool[] authorized = new bool[operations.Length];
 			for(int x = 0; x < operations.Length; x++) {
-				authorized[x] = ExecuteVerifyOperation(operations[x], scope);
+				authorized[x] = ExecuteVerifyOperation(scope, operations[x]);
 			}
 			ReleaseAzSecurityManagerInstance();
 			return authorized;
@@ -222,11 +98,13 @@ namespace ACASLibraries.Security {
 		/// <summary>
 		/// Verifies multiple operations for multiple scopes
 		/// </summary>
-		/// <param name="OperationCollection">Collection of scopes and operations to be verified.  Boolean authoriziation result set to value of operation.</param>
-		public void VerifyOperations(ref OperationCollection<TScopes, TOperations> OperationCollection) {
-			for(int x = 0; x < OperationCollection.Keys.Count; x++) {
-				for(int y = 0; y < OperationCollection[x].Keys.Count; y++) {
-					OperationCollection[x][y] = ExecuteVerifyOperation(Convert.ToInt32(OperationCollection[x].GetKeyByIndex(y)), OperationCollection.GetKeyByIndex(x).ToString());
+		/// <param name="AzOperationCollection">Collection of scopes and operations to be verified.  Boolean authoriziation result set to value of operation.</param>
+		public void VerifyOperations<TScopes, TOperations>(ref AzOperationCollection<TScopes, TOperations> operationCollection)
+			where TScopes : struct, IConvertible
+			where TOperations : struct, IConvertible {
+			for(int x = 0; x < operationCollection.Keys.Count; x++) {
+				for(int y = 0; y < operationCollection[x].Keys.Count; y++) {
+					operationCollection[x][y] = ExecuteVerifyOperation(operationCollection.GetKeyByIndex(x).ToString(), Convert.ToInt32(operationCollection[x].GetKeyByIndex(y)));
 				}
 			}
 			ReleaseAzSecurityManagerInstance();
@@ -240,8 +118,12 @@ namespace ACASLibraries.Security {
 		/// <param name="operation">Security.operation to be verified.</param>
 		/// <param name="scope">Security.scope the operation is subject.</param>
 		/// <returns>True if authorized, false if not.</returns>
-		public bool VerifyOperation(TOperations operation, TScopes scope) {
-			return VerifyOperation(Convert.ToInt32(operation), scope.ToString());
+		/// <typeparam name="TOperations">Enum of operations where value of each enum member is an integer that matches an operation id in Authorization Manager.</typeparam>
+		/// <typeparam name="TScopes">Enum of scope operations where the scope name where the enum member's description attribute or member name matches a defined scope in Authorization Manager.</typeparam>
+		public bool VerifyOperation<TScopes, TOperations>(TScopes scope, TOperations operation)
+			where TScopes : struct, IConvertible
+			where TOperations : struct, IConvertible {
+			return VerifyOperation(scope.ToString(), Convert.ToInt32(operation));
 		}
 		/// <summary>
 		/// Verifies a single operation for a single scope. Recommended to use VerifyOperations() if verifying more than one operation or scope on a page load.
@@ -249,44 +131,37 @@ namespace ACASLibraries.Security {
 		/// <param name="operation">Integer value of operation to be verified.</param>
 		/// <param name="scope">String name of scope the operation is subject.</param>
 		/// <returns>True if authorized, false if not.</returns>
-		public bool VerifyOperation(int operation, string scope) {
-			bool authorized = ExecuteVerifyOperation(operation, scope);
+		public bool VerifyOperation(string scope, int operation) {
+			bool authorized = ExecuteVerifyOperation(scope, operation);
 			ReleaseAzSecurityManagerInstance();
 			return authorized;
 		}
 		#endregion
 
 		#region TryVerifyCachedOperation(); CacheOperationVerification();
-		private bool TryVerifyCachedOperation(int operation, string scope, out bool authorized) {
+		private bool TryVerifyCachedOperation(string scope, int operation, out bool authorized) {
 			bool hasCachedValue = false;
 			authorized = false;
-			if(cacheOperationVerifications) {
-				ConcurrentDictionary<string, ConcurrentDictionary<int, OperationVerificationResult>> scopeCache;
-				if(operationVerificationCache.TryGetValue(GetUsername(), out scopeCache)) {
-					ConcurrentDictionary<int, OperationVerificationResult> operationCache;
-					if(scopeCache.TryGetValue(scope, out operationCache)) {
-						OperationVerificationResult cachedVerificationResult;
-						if(operationCache.TryGetValue(operation, out cachedVerificationResult)) {
-							if(cachedVerificationResult.Created + OperationVerificationCacheExpiration > DateTime.Now) {
-								//cache result is good
-								hasCachedValue = true;
-								authorized = cachedVerificationResult.IsVerified;
-							}
-							else {
-								//cache is out of date
-								operationCache.TryRemove(operation, out cachedVerificationResult);
-							}
-						}
+			if(CacheOperationVerifications) {
+				AzOperationVerificationResult cachedVerificationResult;
+				Tuple<string, string, int> cacheKey = Tuple.Create<string, string, int>(UserManager.Username, scope, operation);
+				if(operationVerificationCache.TryGetValue(cacheKey, out cachedVerificationResult)) {
+					if(cachedVerificationResult.Created + OperationVerificationCacheExpiration > DateTime.Now) {
+						//cache result is good
+						hasCachedValue = true;
+						authorized = cachedVerificationResult.IsVerified;
+					}
+					else {
+						//cache is out of date
+						operationVerificationCache.TryRemove(cacheKey, out cachedVerificationResult);
 					}
 				}
 			}
 			return hasCachedValue;
 		}
-		private bool CacheOperationVerification(int operation, string scope, bool authorized) {
-			if(cacheOperationVerifications) {
-				ConcurrentDictionary<string, ConcurrentDictionary<int, OperationVerificationResult>> scopeCache = operationVerificationCache.GetOrAdd(GetUsername(), x => new ConcurrentDictionary<string, ConcurrentDictionary<int, OperationVerificationResult>>());
-				ConcurrentDictionary<int, OperationVerificationResult> operationCache = scopeCache.GetOrAdd(scope, x => new ConcurrentDictionary<int, OperationVerificationResult>());
-				operationCache.AddOrUpdate(operation, x => new OperationVerificationResult(authorized), (x, y) => new OperationVerificationResult(authorized));
+		private bool CacheOperationVerification(string scope, int operation, bool authorized) {
+			if(CacheOperationVerifications) {
+				operationVerificationCache.AddOrUpdate(Tuple.Create<string, string, int>(UserManager.Username, scope, operation), x => new AzOperationVerificationResult(authorized), (x, y) => new AzOperationVerificationResult(authorized));
 			}
 			return authorized;
 		}
@@ -300,11 +175,11 @@ namespace ACASLibraries.Security {
 		/// <param name="scope">String name of scope the operation is subject.</param>
 		/// <param name="azSecurityManager">An open and connection azSecurityManager object.</param>
 		/// <returns>True if authorized, false if not.</returns>
-		private bool ExecuteVerifyOperation(int operation, string scope) {
+		private bool ExecuteVerifyOperation(string scope, int operation) {
 			bool authorized = false;
 			try {
-				if(!TryVerifyCachedOperation(operation, scope, out authorized)) {
-					if(!string.IsNullOrEmpty(scope) && noneScope != null && string.Compare(scope, noneScopeName) != 0) {
+				if(!TryVerifyCachedOperation(scope, operation, out authorized)) {
+					if(!string.IsNullOrEmpty(scope) && (string.IsNullOrEmpty(RootScopeAlias) || string.Compare(scope, RootScopeAlias) != 0)) {
 						//add to cache
 						authorized = GetAzSecurityManagerInstance().VerifyOperation(operation, scope);
 					}
@@ -312,28 +187,30 @@ namespace ACASLibraries.Security {
 						//add to cache
 						authorized = GetAzSecurityManagerInstance().VerifyOperation(operation);
 					}
-					CacheOperationVerification(operation, scope, authorized);
+					CacheOperationVerification(scope, operation, authorized);
+					if(ACASLibraries.Trace.IsEnabled) {
+						ACASLibraries.Trace.Write("AzOperationVerifier.ExecuteVerifyOperation", (scope != null ? scope : "NULL") + "." + operation.ToString() + "=" + authorized.ToString());
+					}
 				}
 			}
 			catch(Exception ex) {
 				Logger.LogError(ex);
-			}
-			if(ACASLibraries.Trace.IsEnabled) {
-				ACASLibraries.Trace.Write("IAzSecurityStaticVerifier.VerifyOperation", (scope != null ? scope : "NULL") + "." + operation.ToString() + "=" + authorized.ToString());
 			}
 			return authorized;
 		}
 		#endregion
 	}
 
-	#region OperationCollection
+	#region AzOperationCollection
 	/// <summary>
 	/// Collection of Scopes and operations.  Use AddOperation() method to add new operations to the collection.  For use with WebPort.Security.VerifyOperations().
 	/// </summary>
-	public class OperationCollection<TScopes, TOperations> : Dictionary<TScopes, OperationAuthorizationDictionary<TOperations>>
+	/// <typeparam name="TOperations">Enum of operations where value of each enum member is an integer that matches an operation id in Authorization Manager.</typeparam>
+	/// <typeparam name="TScopes">Enum of scope operations where the scope name where the enum member's description attribute or member name matches a defined scope in Authorization Manager.</typeparam>
+	public class AzOperationCollection<TScopes, TOperations> : Dictionary<TScopes, AzOperationAuthorizationDictionary<TOperations>>
 		where TScopes : struct, IConvertible
 		where TOperations : struct, IConvertible {
-		public OperationAuthorizationDictionary<TOperations> this[int index] {
+		public AzOperationAuthorizationDictionary<TOperations> this[int index] {
 			get {
 				int x = 0;
 				foreach(TScopes scope in Keys) {
@@ -364,26 +241,15 @@ namespace ACASLibraries.Security {
 		}
 
 		/// <summary>
-		/// Add a single operation for a single scope
-		/// </summary>
-		/// <param name="operation">operation to be added</param>
-		/// <param name="scope">scope for which to add operations</param>
-		public void AddOperation(TOperations operation, TScopes scope) {
-			if(!this.ContainsKey(scope)) {
-				this.Add(scope, new OperationAuthorizationDictionary<TOperations>());
-			}
-			if(!this[scope].ContainsKey(operation)) {
-				this[scope].Add(operation, false);
-			}
-		}
-		/// <summary>
-		/// Add multiple operations for a single scope.
+		/// Add one or more operations for a single scope.
 		/// </summary>
 		/// <param name="operations">operations to be added</param>
 		/// <param name="scope">scope for which to add operations</param>
-		public void AddOperations(TOperations[] operations, TScopes scope) {
+		/// <typeparam name="TOperations">Enum of operations where value of each enum member is an integer that matches an operation id in Authorization Manager.</typeparam>
+		/// <typeparam name="TScopes">Enum of scope operations where the scope name where the enum member's description attribute or member name matches a defined scope in Authorization Manager.</typeparam>
+		public void AddOperation(TScopes scope, params TOperations[] operations) {
 			if(!this.ContainsKey(scope)) {
-				this.Add(scope, new OperationAuthorizationDictionary<TOperations>());
+				this.Add(scope, new AzOperationAuthorizationDictionary<TOperations>());
 			}
 			for(int x = 0; x < operations.Length; x++) {
 				if(!this[scope].ContainsKey(operations[x])) {
@@ -398,7 +264,7 @@ namespace ACASLibraries.Security {
 		/// <param name="operation">The operation for the authorization check</param>
 		/// <param name="scope">The scope of the operation</param>
 		/// <returns>True if the operation has been authorized. False if the operation is not authorized or if the collection has not been assessed for authorization.</returns>
-		public bool IsAuthorized(TOperations operation, TScopes scope) {
+		public bool IsAuthorized(TScopes scope, TOperations operation) {
 			if(this.ContainsKey(scope)) {
 				if(this[scope].ContainsKey(operation)) {
 					return this[scope][operation];
@@ -426,8 +292,9 @@ namespace ACASLibraries.Security {
 	}
 	#endregion
 
-	#region OperationAuthorizationDictionary
-	public class OperationAuthorizationDictionary<TOperations> : Dictionary<TOperations, bool>
+	#region AzOperationAuthorizationDictionary
+	/// <typeparam name="TOperations">Enum of operations where value of each enum member is an integer that matches an operation id in Authorization Manager.</typeparam>
+	public class AzOperationAuthorizationDictionary<TOperations> : Dictionary<TOperations, bool>
 		where TOperations : struct, IConvertible {
 		public bool this[int index] {
 			get {
@@ -475,10 +342,10 @@ namespace ACASLibraries.Security {
 			throw new IndexOutOfRangeException("Index " + index.ToString() + " out of range in " + Keys.Count.ToString() + " key collection.");
 		}
 	}
-#endregion
+	#endregion
 
-	#region OperationVerificationResult
-	public class OperationVerificationResult {
+	#region AzOperationVerificationResult
+	public class AzOperationVerificationResult {
 		public bool IsVerified {
 			get;
 			private set;
@@ -488,7 +355,7 @@ namespace ACASLibraries.Security {
 			private set;
 		}
 
-		public OperationVerificationResult(bool isVerified) {
+		public AzOperationVerificationResult(bool isVerified) {
 			IsVerified = isVerified;
 			Created = DateTime.Now;
 		}

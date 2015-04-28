@@ -33,17 +33,17 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
-	<Prefer32Bit>false</Prefer32Bit>    
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'UAT|AnyCPU'">
-   <Prefer32Bit>false</Prefer32Bit>
+    <Prefer32Bit>false</Prefer32Bit>
     <OutputPath>..\bin\</OutputPath>
     <DocumentationFile>..\bin\ACASLibraries.Security.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'STAGE|AnyCPU'">
     <DebugSymbols>true</DebugSymbols>
     <OutputPath>..\bin\</OutputPath>
-	<DocumentationFile>..\bin\ACASLibraries.Security.XML</DocumentationFile>
+    <DocumentationFile>..\bin\ACASLibraries.Security.XML</DocumentationFile>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <DebugType>full</DebugType>
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -92,8 +92,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AzSecurityManager.cs" />
-    <Compile Include="AzUtility.cs" />
-    <Compile Include="AzSecurityManagerCachedThreadSafe.cs" />
+    <Compile Include="AzOperationVerifier.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

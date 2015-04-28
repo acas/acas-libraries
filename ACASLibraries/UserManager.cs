@@ -1,5 +1,8 @@
 using System;
+using System.Configuration;
+using System.DirectoryServices.AccountManagement;
 using System.Runtime.InteropServices;
+using System.ServiceModel;
 using System.Text;
 using System.Web;
 
@@ -24,7 +27,9 @@ namespace ACASLibraries
 		{
 			get
 			{
-				if(HttpContext.Current != null)
+				if(ServiceSecurityContext.Current != null && ServiceSecurityContext.Current.WindowsIdentity != null)
+					return ServiceSecurityContext.Current.WindowsIdentity.Name;
+				else if(HttpContext.Current != null)
 					return HttpContext.Current.User.Identity.Name;
 				else if(System.Security.Principal.WindowsIdentity.GetCurrent() != null)
 					return System.Security.Principal.WindowsIdentity.GetCurrent().Name;
@@ -101,7 +106,7 @@ namespace ACASLibraries
 						}
 					}
 				}
-	    
+		
 				LastGetAccountError = iError;
 
 				if(referencedDomainName != null && referencedDomainName.Length > 0)
@@ -155,7 +160,7 @@ namespace ACASLibraries
 			{
 				// Consider throwing an exception since no result was found
 			}
-            
+			
 			if(iError == 0)
 			{
 				IntPtr ptrSid;
@@ -174,6 +179,58 @@ namespace ACASLibraries
 			LastGetAccountError = iError;
 			
 			return sSID;
+		}
+		#endregion
+
+		#region GetUserPrincipal();
+		/// <summary>
+		/// Returns user principal for the current user using "ApplicationDomain" setting defined in app.config/web.config appSettings
+		/// </summary>
+		/// <returns></returns>
+		public static UserPrincipal GetUserPrincipal() {
+			return GetUserPrincipal(ConfigurationManager.AppSettings["ApplicationDomain"], Username);
+		}
+		/// <summary>
+		/// Returns user principal for the given user and domain
+		/// </summary>
+		/// <param name="applicationDomain"></param>
+		/// <returns></returns>
+		public static UserPrincipal GetUserPrincipal(string applicationDomain, string username) {
+			return UserPrincipal.FindByIdentity(new PrincipalContext(ContextType.Domain, applicationDomain), IdentityType.SamAccountName, username);
+		}
+		#endregion
+
+		#region GetUserGuid();
+		public static string GetUserGuid() {
+			Principal userPrincipal = GetUserPrincipal();
+			if(userPrincipal != null) {
+				Guid? userGuid = userPrincipal.Guid;
+				if(userGuid != null) {
+					return userGuid.Value.ToString();
+				}
+				else {
+					return null;
+				}
+			}
+			else {
+				return null;
+			}
+		}
+		#endregion
+
+		#region GetUserEmailAddress();
+		public static string GetUserEmailAddress() {
+			string emailAddress = null;
+			try {
+				UserPrincipal userPrincipal = GetUserPrincipal();
+				if(userPrincipal != null) {
+					emailAddress = userPrincipal.EmailAddress;
+				}
+			}
+			catch(Exception ex) {
+				Logger.LogError(ex);
+			}
+			return emailAddress;
 		}
 		#endregion
 
