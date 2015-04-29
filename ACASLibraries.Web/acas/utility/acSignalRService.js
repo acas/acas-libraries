@@ -107,6 +107,9 @@ acas.module('acSignalRService', 'acas.utility.angular', 'acas.notifications.angu
                     var hub = utilities.findHub(hubName)
                     if (hub && _.has(hub.methods, methodName)) {
                         hub.listeners[methodName] = receiverFn
+                        // resolves a known issue where listeners won't be registered
+                        // in certain environments
+                        utilities.refreshHubs()
                     }
                 },
                 updateHubNames: function () {
