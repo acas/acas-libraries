@@ -83,7 +83,7 @@ namespace ACASLibraries
 		/// <summary>
 		/// Format a date/time in the "M/d/yyyy h:mm tt" format (i.e. 3/15/2006 4:15 PM).
 		/// </summary>
-		/// <param name="UnformattedDate">Any object supporting the ToString() method which will return a date in string form.</param>
+		/// <param name="unformattedDate">Any object supporting the ToString() method which will return a date in string form.</param>
 		/// <returns>The formatted date/time as a string.  If UnformattedDate is NULL, an empty string will be returned.</returns>
 		public static string FormatDateTime(object unformattedDate)
 		{

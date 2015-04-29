@@ -60,6 +60,9 @@ namespace ACASLibraries
 		#endregion
 
 		#region LastGetAccountError
+		/// <summary>
+		/// Represents the last error occurring while accessing the account
+		/// </summary>
 		public static int LastGetAccountError = -1;
 		#endregion
 
