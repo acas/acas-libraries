@@ -45,19 +45,15 @@ namespace ACASLibraries.Security {
 		private AzSecurityManager GetAzSecurityManagerInstance() {
 			if(!Monitor.IsEntered(threadLock)) {
 				Monitor.Enter(threadLock);
-				if(azSecurityManagerInstance == null) {
-					azSecurityManagerInstance = new AzSecurityManager();
-				}
+				azSecurityManagerInstance = new AzSecurityManager();
 			}
 			return azSecurityManagerInstance;
 		}
 
 		private void ReleaseAzSecurityManagerInstance() {
 			if(Monitor.IsEntered(threadLock)) {
-				if(azSecurityManagerInstance != null) {
-					azSecurityManagerInstance.Dispose();
-					azSecurityManagerInstance = null;
-				}
+				azSecurityManagerInstance.Dispose();
+				azSecurityManagerInstance = null;
 				Monitor.Exit(threadLock);
 			}
 		}
@@ -178,7 +174,10 @@ namespace ACASLibraries.Security {
 		private bool ExecuteVerifyOperation(string scope, int operation) {
 			bool authorized = false;
 			try {
-				if(!TryVerifyCachedOperation(scope, operation, out authorized)) {
+				if(TryVerifyCachedOperation(scope, operation, out authorized)) {
+					ACASLibraries.Trace.Write("AzOperationVerifier.ExecuteVerifyOperation", string.Concat((scope != null ? scope : "NULL"), ".", operation.ToString(), "=", authorized.ToString()));
+				}
+				else {
 					if(!string.IsNullOrEmpty(scope) && (string.IsNullOrEmpty(RootScopeAlias) || string.Compare(scope, RootScopeAlias) != 0)) {
 						//add to cache
 						authorized = GetAzSecurityManagerInstance().VerifyOperation(operation, scope);
@@ -188,9 +187,7 @@ namespace ACASLibraries.Security {
 						authorized = GetAzSecurityManagerInstance().VerifyOperation(operation);
 					}
 					CacheOperationVerification(scope, operation, authorized);
-					if(ACASLibraries.Trace.IsEnabled) {
-						ACASLibraries.Trace.Write("AzOperationVerifier.ExecuteVerifyOperation", (scope != null ? scope : "NULL") + "." + operation.ToString() + "=" + authorized.ToString());
-					}
+					ACASLibraries.Trace.Write("AzOperationVerifier.ExecuteVerifyOperation", string.Concat((scope != null ? scope : "NULL"), ".", operation.ToString(), "=", authorized.ToString()));
 				}
 			}
 			catch(Exception ex) {
