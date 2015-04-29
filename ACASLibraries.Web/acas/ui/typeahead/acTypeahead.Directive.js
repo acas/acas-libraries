@@ -153,8 +153,6 @@ acas.module('acTypeahead', 'acas.ui.angular', 'underscorejs', function () {
 					scope.$watch(function () { return value },
 						function () {
 							$timeout(function () {
-								console.log("watch hit, value: ")
-								console.log(value)
 								if (Object.keys(value).length > 0) {
 									scope.$apply(function () {
 										scope.ngModel = value
