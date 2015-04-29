@@ -29,19 +29,19 @@ namespace ACASLibraries.Security
 		/// <summary>
 		/// Internal reference for IAzApplication.  Instantiated from azStore.
 		/// </summary>
-		#if UseVersion1Types
+#if UseVersion1Types
 		private IAzApplication azApplication = null;
-		#else
+#else
 		private IAzApplication3 azApplication = null;
-		#endif
+#endif
 		/// <summary>
 		/// Internal reference for IAzClientContext.  Stores the last context or used client context.
 		/// </summary>
-		#if UseVersion1Types
+#if UseVersion1Types
 		private IAzClientContext clientContext = null;
-		#else
+#else
 		private IAzClientContext3 clientContext = null;
-		#endif
+#endif
 		/// <summary>
 		/// Internal reference for username last used when creating a context with username and domain
 		/// </summary>
@@ -54,10 +54,11 @@ namespace ACASLibraries.Security
 		/// Internal reference required for IDisposable implementation
 		/// </summary>
 		private bool disposed = false;
-		
-		private bool traceEnabled = false; 
+
+		private bool traceEnabled = false;
 		private TraceType traceType = TraceType.None;
-		private enum TraceType {
+		private enum TraceType
+		{
 			HttpContext,
 			SystemDiagnostics,
 			None
@@ -78,11 +79,11 @@ namespace ACASLibraries.Security
 		/// <summary>
 		/// Get thes active IAzApplication instance for the SecurityManager
 		/// </summary>
-		#if UseVersion1Types
+#if UseVersion1Types
 		public IAzApplication AzApplication
-		#else
+#else
 		public IAzApplication3 AzApplication
-		#endif
+#endif
 		{
 			get
 			{
@@ -92,15 +93,15 @@ namespace ACASLibraries.Security
 		/// <summary>
 		/// Get thes active IAzClientContext instance for the SecurityManager
 		/// </summary>
-		#if UseVersion1Types
+#if UseVersion1Types
 		public IAzClientContext AzClientContext
-		#else
+#else
 		public IAzClientContext3 AzClientContext
-		#endif
+#endif
 		{
 			get
 			{
-				if(clientContext == null)
+				if (clientContext == null)
 				{
 					CreateClientContext();
 				}
@@ -117,11 +118,14 @@ namespace ACASLibraries.Security
 		{
 
 			traceEnabled = ((HttpContext.Current != null && HttpContext.Current.Trace.IsEnabled) || (System.Diagnostics.Trace.Listeners.Count > 0));
-			if(traceEnabled) {
-				if(HttpContext.Current != null && HttpContext.Current.Trace.IsEnabled) {
+			if (traceEnabled)
+			{
+				if (HttpContext.Current != null && HttpContext.Current.Trace.IsEnabled)
+				{
 					traceType = TraceType.HttpContext;
 				}
-				else if(System.Diagnostics.Trace.Listeners.Count > 0) {
+				else if (System.Diagnostics.Trace.Listeners.Count > 0)
+				{
 					traceType = TraceType.SystemDiagnostics;
 				}
 			}
@@ -129,13 +133,15 @@ namespace ACASLibraries.Security
 
 			string azApplicationName = ConfigurationManager.AppSettings["AzManApplication"];
 			string azPolicyStore = ConfigurationManager.AppSettings["AzManPolicyStore"];
-			if(string.IsNullOrEmpty(azPolicyStore)) {
-				if(ConfigurationManager.ConnectionStrings["AzManPolicyStore"] != null) {
+			if (string.IsNullOrEmpty(azPolicyStore))
+			{
+				if (ConfigurationManager.ConnectionStrings["AzManPolicyStore"] != null)
+				{
 					azPolicyStore = ConfigurationManager.ConnectionStrings["AzManPolicyStore"].ConnectionString;
 				}
 			}
 
-			if(azPolicyStore != null && azApplicationName != null)
+			if (azPolicyStore != null && azApplicationName != null)
 			{
 				OpenApplication(azPolicyStore, azApplicationName);
 			}
@@ -144,7 +150,7 @@ namespace ACASLibraries.Security
 		{
 			//try
 			//{
-				OpenApplication(PolicyStoreUri, Application);
+			OpenApplication(PolicyStoreUri, Application);
 			//}
 			//catch(exception oException)
 			//{
@@ -181,20 +187,20 @@ namespace ACASLibraries.Security
 		/// <param name="policyStoreUri">The uri of the policy store.</param>
 		public void OpenPolicyStore(string policyStoreUri)
 		{
-			if(!policyStoreUri.ToLower().StartsWith("msxml:") && !policyStoreUri.ToLower().StartsWith("msldap:") && policyStoreUri.ToLower().EndsWith("xml"))
+			if (!policyStoreUri.ToLower().StartsWith("msxml:") && !policyStoreUri.ToLower().StartsWith("msldap:") && policyStoreUri.ToLower().EndsWith("xml"))
 			{
 				//auto-prefix xml file store path to application root
-				if(HttpContext.Current != null)
+				if (HttpContext.Current != null)
 				{
 					policyStoreUri = String.Concat("msxml://", HttpContext.Current.Request.PhysicalApplicationPath, policyStoreUri);
 				}
-				else if(System.Windows.Forms.Application.ExecutablePath != null)
+				else if (System.Windows.Forms.Application.ExecutablePath != null)
 				{
 					policyStoreUri = String.Concat("msxml://", System.Windows.Forms.Application.StartupPath, @"\", policyStoreUri);
 				}
 			}
 
-			TraceWrite("AzSecurityManager.OpenApplication()", "Opening policy store at \""+policyStoreUri+"\"");
+			TraceWrite("AzSecurityManager.OpenApplication()", "Opening policy store at \"" + policyStoreUri + "\"");
 
 			azStore = new AzAuthorizationStoreClass();
 			azStore.Initialize(0, policyStoreUri, null);
@@ -224,32 +230,32 @@ namespace ACASLibraries.Security
 		/// <param name="applicationName">The name of the application to open in the policy store</param>
 		public void OpenApplication(string policyStoreUri, string applicationName)
 		{
-			if(!policyStoreUri.ToLower().StartsWith("msxml:") && !policyStoreUri.ToLower().StartsWith("msldap:") && policyStoreUri.ToLower().EndsWith("xml"))
+			if (!policyStoreUri.ToLower().StartsWith("msxml:") && !policyStoreUri.ToLower().StartsWith("msldap:") && policyStoreUri.ToLower().EndsWith("xml"))
 			{
 				//auto-prefix xml file store path to application root
-				if(HttpContext.Current != null)
+				if (HttpContext.Current != null)
 				{
 					policyStoreUri = String.Concat("msxml://", HttpContext.Current.Request.PhysicalApplicationPath, policyStoreUri);
 				}
-				else if(System.Windows.Forms.Application.ExecutablePath != null)
+				else if (System.Windows.Forms.Application.ExecutablePath != null)
 				{
 					policyStoreUri = String.Concat("msxml://", System.Windows.Forms.Application.StartupPath, @"\", policyStoreUri);
 				}
 			}
 
-			TraceWrite("AzSecurityManager.OpenApplication()", "Opening policy store at \""+policyStoreUri+"\" and application \""+applicationName+"\"");
+			TraceWrite("AzSecurityManager.OpenApplication()", "Opening policy store at \"" + policyStoreUri + "\" and application \"" + applicationName + "\"");
 
 			azStore = new AzAuthorizationStoreClass();
 			azStore.Initialize(0, policyStoreUri, null);
-			#if UseVersion1Types
+#if UseVersion1Types
 			azApplication = azStore.OpenApplication(applicationName, null);
-			#else
+#else
 			azApplication = (IAzApplication3)azStore.OpenApplication2(applicationName, null);
-			#endif
+#endif
 		}
 		public void OpenApplication(string applicationName)
 		{
-			TraceWrite("AzSecurityManager.OpenApplication()", "Opening application \""+applicationName+"\"");
+			TraceWrite("AzSecurityManager.OpenApplication()", "Opening application \"" + applicationName + "\"");
 			azApplication = (IAzApplication3)azStore.OpenApplication(applicationName, null);
 		}
 		#endregion
@@ -261,69 +267,59 @@ namespace ACASLibraries.Security
 		/// </summary>
 		public void CreateClientContext()
 		{
-			if(azApplication != null)
+			if (azApplication != null)
 			{
-				WindowsIdentity identity = null;
-				if(HttpContext.Current != null && HttpContext.Current.User.Identity is WindowsIdentity)
+				IIdentity identity = null;
+				if (HttpContext.Current != null)
 				{
-					//this happens when we use WindowsAuthentication
-					identity = (WindowsIdentity)HttpContext.Current.User.Identity;
-				}
-				else if (HttpContext.Current != null)
-				{
-					//We're probably using FormsAuthentication. Lookup the account and get a corresponding WindowsIdentity					
-					//assumes the FormsIdentity is in the format DOMAIN\username
-					using (PrincipalContext context = new PrincipalContext(System.DirectoryServices.AccountManagement.ContextType.Domain, HttpContext.Current.User.Identity.Name.Split('\\')[0]))
-					{
-						using (UserPrincipal user = UserPrincipal.FindByIdentity(context, IdentityType.SamAccountName, HttpContext.Current.User.Identity.Name))
-						{
-							identity = new WindowsIdentity(user.UserPrincipalName);
-						}
-					}
+					identity = HttpContext.Current.User.Identity;
 				}
 				else
 				{
 					identity = WindowsIdentity.GetCurrent();
 				}
-				bool contextCreated = false;
+				
 				try
 				{
-					#if UseVersion1Types
-					clientContext = azApplication.InitializeClientContextFromToken((uint)identity.Token, null);
-					#else
-					clientContext = (IAzClientContext3)azApplication.InitializeClientContextFromToken2((uint)identity.Token, (uint)0, null);
-					#endif
-					contextCreated = true;
-				}
-				catch(Exception ex)
-				{
-					TraceWarn("AzSecurityManager.CreateClientContext();", ex.Message, ex);
-				}
-				if(!contextCreated)
-				{
-					string[] saName = identity.Name.Split("\\".ToCharArray());
-					if(saName.Length == 2)
+					if (identity is WindowsIdentity)
 					{
-						//username format is DOMAIN\username
 						#if UseVersion1Types
-						clientContext = azApplication.InitializeClientContextFromName(saName[1], saName[0], null);
+						clientContext = azApplication.InitializeClientContextFromToken((uint)((WindowsIdentity)identity).Token, null);
 						#else
-						clientContext = (IAzClientContext3)azApplication.InitializeClientContextFromName(saName[1], saName[0], null);
-						#endif
+						clientContext = (IAzClientContext3)azApplication.InitializeClientContextFromToken2((uint)((WindowsIdentity)identity).Token, (uint)0, null);
+						#endif		
+
 					}
 					else
 					{
-						saName = identity.Name.Split("@".ToCharArray());
-						if(saName.Length == 2)
+						string[] saName = identity.Name.Split("\\".ToCharArray());
+						if (saName.Length == 2)
 						{
-							//username format is username@DOMAIN
+							//username format is DOMAIN\username
 							#if UseVersion1Types
-							clientContext = azApplication.InitializeClientContextFromName(saName[0], saName[1], null);
+							clientContext = azApplication.InitializeClientContextFromName(saName[1], saName[0], null);
 							#else
-							clientContext = (IAzClientContext3)azApplication.InitializeClientContextFromName(saName[0], saName[1], null);
+							clientContext = (IAzClientContext3)azApplication.InitializeClientContextFromName(saName[1], saName[0], null);
 							#endif
 						}
+						else
+						{
+							saName = identity.Name.Split("@".ToCharArray());
+							if (saName.Length == 2)
+							{
+								//username format is username@DOMAIN
+								#if UseVersion1Types
+								clientContext = azApplication.InitializeClientContextFromName(saName[0], saName[1], null);
+								#else
+								clientContext = (IAzClientContext3)azApplication.InitializeClientContextFromName(saName[0], saName[1], null);
+								#endif
+							}
+						}
 					}
+				}
+				catch (Exception ex)
+				{
+					TraceWarn("AzSecurityManager.CreateClientContext();", ex.Message, ex);
 				}
 			}
 			else
@@ -367,14 +363,16 @@ namespace ACASLibraries.Security
 		#endregion
 
 		#region CreateOperation();
-		public void CreateOperation(string operationName, int operationID, string operationDescription) {
-			#if UseVersion1Types
+		public void CreateOperation(string operationName, int operationID, string operationDescription)
+		{
+#if UseVersion1Types
 			IAzOperation operation = azApplication.CreateOperation(operationName);
-			#else
+#else
 			IAzOperation2 operation = (IAzOperation2)azApplication.CreateOperation(operationName);
-			#endif
+#endif
 			operation.OperationID = operationID;
-			if(!string.IsNullOrEmpty(operationDescription)) {
+			if (!string.IsNullOrEmpty(operationDescription))
+			{
 				operation.Description = operationDescription;
 			}
 			operation.Submit();
@@ -382,23 +380,25 @@ namespace ACASLibraries.Security
 		#endregion
 
 		#region GetOperations();
-		#if UseVersion1Types
+#if UseVersion1Types
 		public IAzOperation[] GetOperations() {
-		#else
-		public IAzOperation2[] GetOperations() {
-		#endif
-			#if UseVersion1Types
+#else
+		public IAzOperation2[] GetOperations()
+		{
+#endif
+#if UseVersion1Types
 			IAzOperation[] operations = new IAzOperation[azApplication.Operations.Count];
-			#else
+#else
 			IAzOperation2[] operations = new IAzOperation2[azApplication.Operations.Count];
-			#endif
+#endif
 			int x = 0;
-			foreach(var operation in azApplication.Operations) {
-				#if UseVersion1Types
+			foreach (var operation in azApplication.Operations)
+			{
+#if UseVersion1Types
 				operations[x] = (IAzOperation)operation;
-				#else
+#else
 				operations[x] = (IAzOperation2)operation;
-				#endif
+#endif
 			}
 			return operations;
 		}
@@ -424,20 +424,20 @@ namespace ACASLibraries.Security
 		{
 			bool result = false;
 
-			TraceWrite("AzSecurityManager.VerifyOperation", "Verifying \""+operation.ToString()+"\" operation for scope \""+scope+"\"");
+			TraceWrite("AzSecurityManager.VerifyOperation", "Verifying \"" + operation.ToString() + "\" operation for scope \"" + scope + "\"");
 
-			if(clientContext == null)
+			if (clientContext == null)
 			{
 				CreateClientContext();
 			}
-			if(clientContext != null)
+			if (clientContext != null)
 			{
-				#if UseVersion1Types
+#if UseVersion1Types
 				object[] accessCheckResult = (object[])clientContext.AccessCheck(defaultAccessCheckObjectName, new object[1] { (scope!=null?scope:"") }, new object[1] { operation }, null, null, null, null, null);
 				if(accessCheckResult != null && (int)accessCheckResult[accessCheckResult.Length-1] == 0)
-				#else
-				if(clientContext.AccessCheck2(defaultAccessCheckObjectName, (scope!=null?scope:""), operation) == 0)
-				#endif
+#else
+				if (clientContext.AccessCheck2(defaultAccessCheckObjectName, (scope != null ? scope : ""), operation) == 0)
+#endif
 				{
 					result = true;
 				}
@@ -447,7 +447,7 @@ namespace ACASLibraries.Security
 				TraceWrite("AzSecurityManager.VerifyOperation", "Client context not available for access verification");
 			}
 
-			if(result)
+			if (result)
 			{
 				TraceWrite("AzSecurityManager.VerifyOperation", "operation granted");
 			}
@@ -484,16 +484,16 @@ namespace ACASLibraries.Security
 		{
 			bool result = false;
 
-			TraceWrite("AzSecurityManager.VerifyOperation", "Verifying \""+operation.ToString()+"\" operation scope \""+scope+"\"");
+			TraceWrite("AzSecurityManager.VerifyOperation", "Verifying \"" + operation.ToString() + "\" operation scope \"" + scope + "\"");
 
-			if(azApplication != null)
+			if (azApplication != null)
 			{
-				if(!(clientContext != null && this.username == username && this.domain == domain))
+				if (!(clientContext != null && this.username == username && this.domain == domain))
 				{
 					//init client context if doesn't exist or username/domain have changed
 					CreateClientContext(username, domain);
 				}
-				if(clientContext != null)
+				if (clientContext != null)
 				{
 					result = VerifyOperation(operation, scope);
 				}
@@ -512,13 +512,15 @@ namespace ACASLibraries.Security
 		#endregion
 
 		#region CreateScope();
-		public void CreateScope(string scopeName, string scopeDescription) {
-			#if UseVersion1Types
+		public void CreateScope(string scopeName, string scopeDescription)
+		{
+#if UseVersion1Types
 			IAzScope scope = azApplication.CreateScope(scopeName);
-			#else
+#else
 			IAzScope2 scope = (IAzScope2)azApplication.CreateScope(scopeName);
-			#endif
-			if(!string.IsNullOrEmpty(scopeDescription)) {
+#endif
+			if (!string.IsNullOrEmpty(scopeDescription))
+			{
 				scope.Description = scopeDescription;
 			}
 			scope.Submit();
@@ -535,11 +537,11 @@ namespace ACASLibraries.Security
 			string[] scopes = new string[azApplication.Scopes.Count];
 
 			int x = 0;
-			#if UseVersion1Types
+#if UseVersion1Types
 			foreach(IAzScope scope in azApplication.Scopes)
-			#else
-			foreach(IAzScope2 scope in azApplication.Scopes)
-			#endif
+#else
+			foreach (IAzScope2 scope in azApplication.Scopes)
+#endif
 			{
 				scopes[x] = scope.Name;
 				x++;
@@ -550,9 +552,11 @@ namespace ACASLibraries.Security
 		#endregion
 
 		#region CreateRole();
-		public void CreateRole(string roleName, string roleDescription) {
+		public void CreateRole(string roleName, string roleDescription)
+		{
 			IAzRole role = azApplication.CreateRole(roleName);
-			if(!string.IsNullOrEmpty(roleDescription)) {
+			if (!string.IsNullOrEmpty(roleDescription))
+			{
 				role.Description = roleDescription;
 			}
 			role.Submit();
@@ -567,7 +571,7 @@ namespace ACASLibraries.Security
 		public string[] GetRoleNames()
 		{
 			string[] roles = new string[azApplication.Roles.Count];
-			for(int x=0;x<azApplication.Roles.Count;x++)
+			for (int x = 0; x < azApplication.Roles.Count; x++)
 			{
 				roles[x] = ((IAzRole)azApplication.Roles[x]).Name;
 			}
@@ -580,13 +584,13 @@ namespace ACASLibraries.Security
 		/// <returns>A string array of all role names within the specified scope</returns>
 		public string[] GetRoleNames(string scopeName)
 		{
-			#if UseVersion1Types
+#if UseVersion1Types
 			IAzScope scope = azApplication.OpenScope(scopeName,null);
-			#else
+#else
 			IAzScope2 scope = azApplication.OpenScope2(scopeName);
-			#endif
+#endif
 			string[] roles = new string[scope.Roles.Count];
-			for(int x=0;x<scope.Roles.Count;x++)
+			for (int x = 0; x < scope.Roles.Count; x++)
 			{
 				roles[x] = ((IAzRole)scope.Roles[x]).Name;
 			}
@@ -594,7 +598,7 @@ namespace ACASLibraries.Security
 			return roles;
 		}
 		#endregion
-		
+
 		#region GetRoleMemberNames();
 		/// <summary>
 		/// Retrieves the names of all NT accounts which are members of the specified role
@@ -607,7 +611,7 @@ namespace ACASLibraries.Security
 			object[] members = ((object[])azRole.MembersName);
 
 			string[] memberNames = new string[members.Length];
-			for(int x=0;x<members.Length;x++)
+			for (int x = 0; x < members.Length; x++)
 			{
 				memberNames[x] = (string)members[x];
 			}
@@ -640,10 +644,10 @@ namespace ACASLibraries.Security
 		/// <param name="roleName">The name of the role</param>
 		public void AddRoleMembers(string[] userOrGroupDomainNames, string roleName)
 		{
-			if(userOrGroupDomainNames != null && userOrGroupDomainNames.Length > 0)
+			if (userOrGroupDomainNames != null && userOrGroupDomainNames.Length > 0)
 			{
 				IAzRole azRole = azApplication.OpenRole(roleName, null);
-				for(int x=0; x<=userOrGroupDomainNames.Length; x++)
+				for (int x = 0; x <= userOrGroupDomainNames.Length; x++)
 				{
 					azRole.AddMemberName(userOrGroupDomainNames[x], null);
 				}
@@ -674,10 +678,10 @@ namespace ACASLibraries.Security
 		/// <param name="roleName">The name of the role</param>
 		public void DeleteRoleMembers(string[] userOrGroupDomainNames, string roleName)
 		{
-			if(userOrGroupDomainNames != null && userOrGroupDomainNames.Length > 0)
+			if (userOrGroupDomainNames != null && userOrGroupDomainNames.Length > 0)
 			{
 				IAzRole azRole = azApplication.OpenRole(roleName, null);
-				for(int x=0; x<=userOrGroupDomainNames.Length; x++)
+				for (int x = 0; x <= userOrGroupDomainNames.Length; x++)
 				{
 					azRole.DeleteMemberName(userOrGroupDomainNames[x], null);
 				}
@@ -695,13 +699,13 @@ namespace ACASLibraries.Security
 		public string[] GetGroupNames()
 		{
 			string[] groups = new string[azApplication.ApplicationGroups.Count];
-			for(int x=0; x<azApplication.ApplicationGroups.Count; x++)
+			for (int x = 0; x < azApplication.ApplicationGroups.Count; x++)
 			{
-				#if UseVersion1Types
+#if UseVersion1Types
 				groups[x] = ((IAzApplicationGroup)azApplication.ApplicationGroups[x]).Name;
-				#else
+#else
 				groups[x] = ((IAzApplicationGroup2)azApplication.ApplicationGroups[x]).Name;
-				#endif
+#endif
 			}
 			return groups;
 		}
@@ -712,19 +716,19 @@ namespace ACASLibraries.Security
 		/// <returns>A string array of all group names within the scope</returns>
 		public string[] GetGroupNames(string scopeName)
 		{
-			#if UseVersion1Types
+#if UseVersion1Types
 			IAzScope scope = azApplication.OpenScope(scopeName, null);
-			#else
+#else
 			IAzScope2 scope = azApplication.OpenScope2(scopeName);
-			#endif
+#endif
 			string[] groups = new string[scope.ApplicationGroups.Count];
-			for(int x=0; x<scope.ApplicationGroups.Count; x++)
+			for (int x = 0; x < scope.ApplicationGroups.Count; x++)
 			{
-				#if UseVersion1Types
+#if UseVersion1Types
 				groups[x] = ((IAzApplicationGroup)scope.ApplicationGroups[x]).Name;
-				#else
+#else
 				groups[x] = ((IAzApplicationGroup2)scope.ApplicationGroups[x]).Name;
-				#endif
+#endif
 			}
 			scope = null;
 			return groups;
@@ -739,15 +743,15 @@ namespace ACASLibraries.Security
 		/// <returns>A string array of all member account names</returns>
 		public string[] GetGroupMemberNames(string groupName)
 		{
-			#if UseVersion1Types
+#if UseVersion1Types
 			IAzApplicationGroup azGroup = azApplication.OpenApplicationGroup(groupName, null);
-			#else
+#else
 			IAzApplicationGroup2 azGroup = (IAzApplicationGroup2)azApplication.OpenApplicationGroup(groupName, null);
-			#endif
+#endif
 			object[] members = (object[])azGroup.MembersName;
 
 			string[] memberNames = new string[members.Length];
-			for(int x=0; x<members.Length; x++)
+			for (int x = 0; x < members.Length; x++)
 			{
 				memberNames[x] = (string)members[x];
 			}
@@ -767,11 +771,11 @@ namespace ACASLibraries.Security
 		/// <param name="groupName">The name of the Group</param>
 		public void AddGroupMember(string userOrGroupDomainName, string groupName)
 		{
-			#if UseVersion1Types
+#if UseVersion1Types
 			IAzApplicationGroup oGroup = azApplication.OpenApplicationGroup(groupName, null);
-			#else
+#else
 			IAzApplicationGroup2 oGroup = (IAzApplicationGroup2)azApplication.OpenApplicationGroup(groupName, null);
-			#endif
+#endif
 			oGroup.AddMemberName(userOrGroupDomainName, null);
 			oGroup.Submit(0, null);
 			oGroup = null;
@@ -784,14 +788,14 @@ namespace ACASLibraries.Security
 		/// <param name="groupName">The name of the Group</param>
 		public void AddGroupMembers(string[] userOrGroupDomainNames, string groupName)
 		{
-			if(userOrGroupDomainNames != null && userOrGroupDomainNames.Length > 0)
+			if (userOrGroupDomainNames != null && userOrGroupDomainNames.Length > 0)
 			{
-				#if UseVersion1Types
+#if UseVersion1Types
 				IAzApplicationGroup oGroup = azApplication.OpenApplicationGroup(groupName, null);
-				#else
+#else
 				IAzApplicationGroup2 oGroup = (IAzApplicationGroup2)azApplication.OpenApplicationGroup(groupName, null);
-				#endif
-				for(int x=0; x<=userOrGroupDomainNames.Length; x++)
+#endif
+				for (int x = 0; x <= userOrGroupDomainNames.Length; x++)
 				{
 					oGroup.AddMemberName(userOrGroupDomainNames[x], null);
 				}
@@ -809,11 +813,11 @@ namespace ACASLibraries.Security
 		/// <param name="groupName">The name of the Group</param>
 		public void DeleteGroupMember(string userOrGroupDomainName, string groupName)
 		{
-			#if UseVersion1Types
+#if UseVersion1Types
 			IAzApplicationGroup oGroup = azApplication.OpenApplicationGroup(groupName, null);
-			#else
+#else
 			IAzApplicationGroup2 oGroup = (IAzApplicationGroup2)azApplication.OpenApplicationGroup(groupName, null);
-			#endif
+#endif
 			oGroup.DeleteMemberName(userOrGroupDomainName, null);
 			oGroup.Submit(0, null);
 			oGroup = null;
@@ -826,14 +830,14 @@ namespace ACASLibraries.Security
 		/// <param name="groupName">The name of the Group</param>
 		public void DeleteGroupMembers(string[] userOrGroupDomainNames, string groupName)
 		{
-			if(userOrGroupDomainNames != null && userOrGroupDomainNames.Length > 0)
+			if (userOrGroupDomainNames != null && userOrGroupDomainNames.Length > 0)
 			{
-				#if UseVersion1Types
+#if UseVersion1Types
 				IAzApplicationGroup oGroup = azApplication.OpenApplicationGroup(groupName, null);
-				#else
+#else
 				IAzApplicationGroup2 oGroup = (IAzApplicationGroup2)azApplication.OpenApplicationGroup(groupName, null);
-				#endif
-				for(int x=0; x<=userOrGroupDomainNames.Length; x++)
+#endif
+				for (int x = 0; x <= userOrGroupDomainNames.Length; x++)
 				{
 					oGroup.DeleteMemberName(userOrGroupDomainNames[x], null);
 				}
@@ -858,7 +862,7 @@ namespace ACASLibraries.Security
 		/// <param name="disposing">Flag if the method is disposing</param>
 		private void Dispose(bool disposing)
 		{
-			if(!this.disposed)
+			if (!this.disposed)
 			{
 				clientContext = null;
 				azApplication = null;
@@ -879,10 +883,12 @@ namespace ACASLibraries.Security
 		#region TraceWrite(); TraceWarn();
 		private void TraceWrite(string category, string message)
 		{
-			if(traceEnabled) {
-				switch(traceType) {
+			if (traceEnabled)
+			{
+				switch (traceType)
+				{
 					case TraceType.HttpContext:
-						if(category != null)
+						if (category != null)
 						{
 							HttpContext.Current.Trace.Write(category, message);
 						}
@@ -892,7 +898,7 @@ namespace ACASLibraries.Security
 						}
 						break;
 					case TraceType.SystemDiagnostics:
-						if(category != null)
+						if (category != null)
 						{
 							System.Diagnostics.Trace.WriteLine(category, message);
 						}
@@ -906,15 +912,16 @@ namespace ACASLibraries.Security
 		}
 		private void TraceWarn(string category, string message, Exception exception)
 		{
-			if(traceEnabled)
+			if (traceEnabled)
 			{
-				switch(traceType) {
+				switch (traceType)
+				{
 					case TraceType.HttpContext:
-						if(category != null && exception != null)
+						if (category != null && exception != null)
 						{
 							HttpContext.Current.Trace.Warn(category, message, exception);
 						}
-						else if(category != null)
+						else if (category != null)
 						{
 							HttpContext.Current.Trace.Warn(category, message);
 						}
@@ -924,13 +931,13 @@ namespace ACASLibraries.Security
 						}
 						break;
 					case TraceType.SystemDiagnostics:
-						if(category != null && exception != null)
+						if (category != null && exception != null)
 						{
-							System.Diagnostics.Trace.TraceError("{0}.{1}: {2}",category, message, (message==exception.Message?exception.StackTrace:exception.Message));
+							System.Diagnostics.Trace.TraceError("{0}.{1}: {2}", category, message, (message == exception.Message ? exception.StackTrace : exception.Message));
 						}
-						else if(category != null)
+						else if (category != null)
 						{
-							System.Diagnostics.Trace.TraceError("{0}.{1}",category, message);
+							System.Diagnostics.Trace.TraceError("{0}.{1}", category, message);
 						}
 						else
 						{
