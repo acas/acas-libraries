@@ -235,15 +235,16 @@ acas.module('acSignalRService', 'acas.utility.angular', 'acas.notifications.angu
                 },
                 slowConnectionHandler: function () {
                     // implement slow connection handling (if needed)
-                    acas.notifications.warning('Connection is slow')
-
+                    // annoying
+                    // acas.notifications.warning('Connection is slow')
                 },
                 reconnectingHandler: function () {
                     // implement the reconnecting handler (if needed)
                 },
                 reconnectedHandler: function () {
                     // implement the reconnected handler (if needed)
-                    acas.notifications.success('Reconnected to the server')
+                    // annoying
+                    // acas.notifications.success('Reconnected to the server')
                 },
                 initialize: function () {
                     utilities.getAvailableHubs()
