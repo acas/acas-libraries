@@ -416,15 +416,17 @@ acas.module('acas.utility', 'underscorejs', function () {
 					}
 					if (date && !(date instanceof Date)) {
 						if (date.match(/\/Date\([0-9]+\)\//)) {
+							//.NET date format
 							date = utilities.dotNetDateToDate(date);
-						} else if (/^[0-9]{4}\-[0-9]{1,2}\-[0-9]{1,2}/.test(date)) {
-							//xml date format
+						} else if (date.length == 19 && /^[0-9]{4}\-[0-9]{1,2}\-[0-9]{1,2}/.test(date)) {
+							//ISO date format without timezone - parse using local timezone instead of GMT (JS default)
 							var bits = date.split(/[-T:]/g);
 							date = new Date(bits[0], bits[1] - 1, bits[2]);
 							if (bits.length > 5) {
 								date.setHours(bits[3], bits[4], bits[5]);
 							}
 						} else {
+							//other format, let javascript try to parse
 							date = new Date(date);
 							if (!(date instanceof Date)) {
 								date = null
