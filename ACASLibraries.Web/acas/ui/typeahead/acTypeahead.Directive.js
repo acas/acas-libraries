@@ -138,7 +138,6 @@ acas.module('acTypeahead', 'acas.ui.angular', 'underscorejs', function () {
 					}					
 				)
 
-
 				// For selecting an item, need completely separate execution path at watch definition for objects,
 				// otherwise other processes may nullify ngModel and the null non-object gets assigned an int.
 				// When ngmodel is an object the directive needs to treat both value and model as objects
@@ -154,9 +153,12 @@ acas.module('acTypeahead', 'acas.ui.angular', 'underscorejs', function () {
 					scope.$watch(function () { return value },
 						function () {
 							$timeout(function () {
+								console.log("watch hit, value: ")
+								console.log(value)
 								if (Object.keys(value).length > 0) {
 									scope.$apply(function () {
 										scope.ngModel = value
+										value = {}
 									})
 								}
 							})
@@ -214,7 +216,7 @@ acas.module('acTypeahead', 'acas.ui.angular', 'underscorejs', function () {
 								scope.selectItem(scope.searchResults[0])
 							} else if (input.val().trim() === '') {
 								scope.ngModel = null
-								scope.display = null								
+								scope.display = null
 							} else {
 								scope.ngModel = value.id //todo
 								scope.display = value.name //todo									
