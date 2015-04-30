@@ -86,7 +86,7 @@ acas.module('acNumericInput', 'acas.ui.angular', 'jquery', 'underscorejs', 'acVa
 						options.minValue = options.minValue !== null ? options.minValue : -Infinity //todo correct value
 						options.maxValue = options.maxValue !== null ? options.maxValue : Infinity //todo correct value								
 						options.precision = options.precision !== null ? options.precision : 25
-						options.scale = options.scale !== null ? options.scale : 10
+						options.scale = options.scale !== null ? options.scale : 17 // length of max value
 				}
 							
 				var generateTemplate = function (readonly, element) {
@@ -130,8 +130,10 @@ acas.module('acNumericInput', 'acas.ui.angular', 'jquery', 'underscorejs', 'acVa
 					isBelowMax: function (value) {
 						return value <= parseFloat(options.maxValue)
 					},
-					//sql precision/scale: precision - scale is the number of digits allowed on the left side of the decimal, scale is the number of 
-					//digits allowed on the right. the minus sign doesn't count .
+					// sql precision/scale:
+					// - precision: Total number of digits in the number
+					// - scale: Number of digits allowed on the RHS of the decimal point
+					// 123.45 has precision 5, scale 2
 					isWithinPrecision: function (value) {
 						return value.toString().split('.')[0].replace('-', '').length <= (options.precision - options.scale) || Infinity
 					},
