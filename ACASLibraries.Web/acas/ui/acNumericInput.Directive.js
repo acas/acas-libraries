@@ -86,7 +86,7 @@ acas.module('acNumericInput', 'acas.ui.angular', 'jquery', 'underscorejs', 'acVa
 						options.minValue = options.minValue !== null ? options.minValue : -Infinity //todo correct value
 						options.maxValue = options.maxValue !== null ? options.maxValue : Infinity //todo correct value								
 						options.precision = options.precision !== null ? options.precision : 25
-						options.scale = options.scale !== null ? options.scale : 15 //max JS precision before it is rounded
+						options.scale = options.scale !== null ? options.scale : 17 // length of max value
 				}
 							
 				var generateTemplate = function (readonly, element) {
