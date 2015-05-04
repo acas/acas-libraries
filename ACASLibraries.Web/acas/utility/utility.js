@@ -342,7 +342,14 @@ acas.module('acas.utility', 'underscorejs', function () {
 
 			forceArray: function (object) {
 				if (!_.isArray(object)) {
-					object = [_.clone(object)];
+					if (_.isDate(object)) {
+						object = [(object.getMonth() + 1) + "/" + object.getDate()
+							+ "/" + object.getFullYear() + " " + object.getHours()
+							+ ':' + object.getMinutes() + ':' + object.getSeconds()]
+					}
+					else {
+						object = [_.clone(object)];
+					}
 				}
 				return object;
 			},
