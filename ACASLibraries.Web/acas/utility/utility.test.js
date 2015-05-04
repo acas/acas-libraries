@@ -316,7 +316,7 @@ describe('Periods -->', function () {
 		})
 
 		it('should correctly return the current quarter', function () {
-			var quarter = (new Date()).getFullYear() * 10 + (((new Date()).getMonth() + 1) % 3) + 1			
+			var quarter = (new Date()).getFullYear() * 10 + Math.ceil(((new Date()).getMonth() + 1) / 3)
 			expect(periods.currentQuarter()).toEqual(quarter)
 		})
 	})
@@ -336,7 +336,7 @@ describe('Periods -->', function () {
 		it('should add or subtract quarters to a quarter', function () {
 			expect(periods.addQuarters(20121, 1)).toEqual(20122)
 			expect(periods.addQuarters(20171, 6)).toEqual(20183)
-			expect(periods.addQuarters(20172, -7)).toEqual(20153)
+			expect(periods.addQuarters(20172, -7)).toEqual(20153)			
 			expect(periods.addQuarters(20131, -1)).toEqual(20124)
 			expect(periods.addQuarters(20141, -3)).toEqual(20132)
 
