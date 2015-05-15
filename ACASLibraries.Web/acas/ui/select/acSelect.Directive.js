@@ -23,32 +23,33 @@ acas.module('acSelect', 'acas.angular', 'select2', 'jquery', 'underscorejs', 'ac
 				acDisplayFunction: '=', //alternative to acDisplay, for the items in the dropdown - not currently supported if acBindOptionsOnce is true
 				acDisplaySelected: '=', //alternative to acDisplay, for the selected item - not currently supported if acBindOptionsOnce is true
 				acSelectOptions: '=', //object containing optional parameters, defaults to: { allowSearch: true, allowEmpty: true, bindOptionsOnce: false }
-				acPlaceholder: '=',
+				acPlaceholder: '=', //deprecated: use the placeholder property inside acSelectOptions
 				acChange: '=',
 				ngModel: '=',
 				acReadonly: '='
 			},
-			template: function (element, attributes) {
+			template: function (element, attributes) {				
+				eval('var config = ' + attributes.acSelectOptions)				
+				config = _.extend(_.clone(defaultOptions), config)
+
 				var optionsHtml
-				eval('var config = ' + attributes.acSelectOptions)
-				config = _.extend(defaultOptions, config)
 				if (config.bindOptionsOnce) {					
 					optionsHtml = '<option ng-repeat="element in ::acOptions" value="{{::element[acValue]}}" data-ac-display-selected="{{::acDisplaySelected(element)}}">{{::element[acDisplay]}}{{::acDisplayFunction(element)}}</option>'					
 				}
 				else {					
 					optionsHtml = '<option ng-repeat="element in acOptions" value="{{element[acValue]}}" data-ac-display-selected="{{acDisplaySelected(element)}}">{{element[acDisplay]}}{{acDisplayFunction(element)}}</option>'
-				}
-
-				if (config.allowEmpty) {
-					optionsHtml = '<option value="">&nbsp;</option>' + optionsHtml
+				}				
+				if (config.allowEmpty || config.allowClear) {				
+					optionsHtml = '<option></option>' + optionsHtml
 				}
 
 				return '<span' + (element.ngShow != null ? ' ng-show="ngShow"' : '') + '>' +
-							'<select class="ac-select" style="width:100%;padding:0;"'+ (attributes.acPlaceholder?' data-placeholder="{{placeholder}}"':'')+'> '
+							'<select class="ac-select" style="width:100%;padding:0;"> '
 									+ optionsHtml +
 							' </select></span>';
 			},
 			link: function (scope, element, attributes) {
+				var config = _.extend(_.clone(defaultOptions), scope.acSelectOptions)
 				opts = {
 					formatResult: function (x) {
 						return x.element[0].innerHTML
@@ -60,19 +61,12 @@ acas.module('acSelect', 'acas.angular', 'select2', 'jquery', 'underscorejs', 'ac
 						} else {
 							return x.text
 						}
-					}
-
+					},
+					minimumResultsForSearch: (!config.allowSearch ? -1 : undefined),
+					allowClear: !!config.allowClear,
+					placeholder: scope.acPlaceholder || config.placeholder
 				}
-				var config = _.extend(defaultOptions, scope.acSelectOptions)
-
-				if (!config.allowSearch) {
-					opts.minimumResultsForSearch = -1
-				}
-
-				if (!!config.allowClear) {
-					opts.allowClear = true
-				}
-
+				
 				var select = element.children().children().select2(opts)
 
 				
