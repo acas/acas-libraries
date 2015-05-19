@@ -1,6 +1,6 @@
 {
     "name": "acas-libraries",
-    "version": "15.8.0",
+    "version": "15.9.0",
     "description": "Contains common JavaScript code for web apps, especially (but not limited to) angularjs apps",
     "main": "Gruntfile.js",
     "keywords": [
