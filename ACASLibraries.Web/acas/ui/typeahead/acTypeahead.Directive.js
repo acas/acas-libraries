@@ -142,7 +142,7 @@ acas.module('acTypeahead', 'acas.ui.angular', 'underscorejs', function () {
 				// otherwise other processes may nullify ngModel and the null non-object gets assigned an int.
 				// When ngmodel is an object the directive needs to treat both value and model as objects
 				// - allows two way binding and object changes can be handled with a watch in the controller
-				if (typeof (scope.ngModel) === 'object') {
+				if (scope.ngModel && typeof (scope.ngModel) === 'object') {
 					scope.$watch(function () { return scope.acDisplay },
 						function () {
 							value = {}
@@ -165,7 +165,7 @@ acas.module('acTypeahead', 'acas.ui.angular', 'underscorejs', function () {
 					)
 				}
 				// otherwise handled the old way, where value is id/name pair and model is just the id
-				else {
+				else if (scope.ngModel) {
 					//watch the display - if it changes programmatically, update the value
 					scope.$watch(function () { return scope.acDisplay },
 						function () {
@@ -199,7 +199,7 @@ acas.module('acTypeahead', 'acas.ui.angular', 'underscorejs', function () {
 							scope.showBox = false
 							scope.searchResults = {}
 						})
-						
+						console.log(value)
 					})
 				}
 
