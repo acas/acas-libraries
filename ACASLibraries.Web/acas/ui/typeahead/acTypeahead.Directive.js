@@ -199,7 +199,6 @@ acas.module('acTypeahead', 'acas.ui.angular', 'underscorejs', function () {
 							scope.showBox = false
 							scope.searchResults = {}
 						})
-						console.log(value)
 					})
 				}
 
