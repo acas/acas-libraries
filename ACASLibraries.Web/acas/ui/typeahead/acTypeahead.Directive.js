@@ -15,16 +15,16 @@ acas.module('acTypeahead', 'acas.ui.angular', 'underscorejs', function () {
 			replace: true,
 			link: function (scope, element) {
 				var config = _.extend({
-					idProperty: 'id', // if optionFormat is not used, both this and displayProperty are used
-					displayProperty: 'name', // if not passed in will be set to same as dataSearch if dataSearch is not a function
+					idProperty: 'id', // if optionFormat is not used, both this and nameProperty are used
+					nameProperty: 'name', // if not passed in will be set to same as dataSearch if dataSearch is not a function, if dataSearch is array it will be first element
 					selectionFormat: 'name',
 					searchPath: '', //if searchPath is used, it will override data/dataSearch
 					data: null, //array of objects
-					dataSearch: 'name', //either function or name of property
-					optionFormat: null, //if not passed in, template uses displayProperty of item in watch instead of bind
+					dataSearch: 'name', // property or properties to be searched, can be a function, a string (property name), or an array of strings to search on multiple properties
+					optionFormat: null, //if not passed in, template uses nameProperty of item in watch instead of bind
 					inputClass: 'form-control'
 				}, scope.acTypeaheadOptions)
-				scope.config = config //so that it can be accessed in the template
+				scope.config = config //so that it can be accessed in the template   
 
 				if (!scope.config.searchPath && !scope.config.data) {
 					throw 'ERROR: acTypeahead must use either searchPath or both data and dataSearch. Please see acas libraries code.'
@@ -34,9 +34,14 @@ acas.module('acTypeahead', 'acas.ui.angular', 'underscorejs', function () {
 					scope.config.optionFormat = function(item) {return item[scope.config.optionFormat]}
 				}
 
-				// default displayProperty to be same as dataSearch if not explicitly set in options, if dataSearch is not function:
-				if (scope.config.displayProperty === 'name' && typeof (scope.config.dataSearch) !== 'function' && scope.config.dataSearch !== 'name') {
-					scope.config.displayProperty = scope.config.dataSearch
+				// to support searching on multiple columns, use array by default, and if a string literal convert to array
+				if (typeof (scope.config.dataSearch) === 'string') {
+					scope.config.dataSearch = [scope.config.dataSearch]
+				}
+
+				// default nameProperty to be same as dataSearch if not explicitly set in options, if dataSearch is not function:
+				if (scope.config.nameProperty === 'name' && typeof (scope.config.dataSearch) !== 'function' && scope.config.dataSearch[0] !== 'name') {
+					scope.config.nameProperty = scope.config.dataSearch[0]
 				}
 
 				scope.showBox = false
@@ -56,16 +61,24 @@ acas.module('acTypeahead', 'acas.ui.angular', 'underscorejs', function () {
 							})
 	
 					} else {
-						var results
+						var results = []
 						if (typeof (scope.config.dataSearch) === 'function') {
 							results = scope.config.dataSearch(scope.config.data, search)
-						} else { //should be a string
-							results = _.filter(scope.config.data, function (x) {
+						} else {
+							//should be a string array - see above, if string literal is passed it's converted to single-element array, allows for searching on any number of properties
+							var data = scope.config.data
+							var searchProperties = scope.config.dataSearch
 							
-							return x[scope.config.dataSearch].toString().toLowerCase().indexOf(search.trim().toLowerCase()) !== -1
-							})
+							for (var i = 0; i < data.length; i++) {
+								for (var j = 0; j < searchProperties.length; j++) {
+									if (data[i][searchProperties[j]] && data[i][searchProperties[j]].toString().toLowerCase().indexOf(search.trim().toLowerCase()) !== -1) {
+										results.push(data[i])
+										break
+									}
+								}
+							}
 						}
-
+	
 						deferred.resolve(results)
 					}
 					return deferred.promise
@@ -118,7 +131,7 @@ acas.module('acTypeahead', 'acas.ui.angular', 'underscorejs', function () {
 							optionTemplateHtml = '<div class="ac-typeahead-dropdown-item" ng-class="{active: activeItem === $index}" ng-repeat="item in searchResults" ng-click="selectItem(item)" ng-bind-html="config.optionFormat(item)"></div>'
 						}
 						else {
-							optionTemplateHtml = '<div class="ac-typeahead-dropdown-item" ng-class="{active: activeItem === $index}" ng-repeat="item in searchResults" ng-click="selectItem(item)" >{{item[config.displayProperty]}}</div>'
+							optionTemplateHtml = '<div class="ac-typeahead-dropdown-item" ng-class="{active: activeItem === $index}" ng-repeat="item in searchResults" ng-click="selectItem(item)" >{{item[config.nameProperty]}}</div>'
 						}
 						var noResultsTemplate = '<div class="ac-typeahead-dropdown-item no-results" ng-show="!searchResults.length">No Results Found</div>'
 								
@@ -165,15 +178,16 @@ acas.module('acTypeahead', 'acas.ui.angular', 'underscorejs', function () {
 					)
 				}
 				// otherwise handled the old way, where value is id/name pair and model is just the id
-				else if (scope.ngModel) {
+				else {
 					//watch the display - if it changes programmatically, update the value
 					scope.$watch(function () { return scope.acDisplay },
 						function () {
-							value = {
-								id: scope.ngModel,
-								name: scope.acDisplay
-							}
+							value = {}
+							value[scope.config.idProperty] = scope.ngModel
+							value[scope.config.nameProperty] = scope.acDisplay
+
 							search()
+	
 						}
 					)
 
@@ -183,8 +197,8 @@ acas.module('acTypeahead', 'acas.ui.angular', 'underscorejs', function () {
 							$timeout(function () {
 								scope.$apply(function () {
 									scope.ngModel = value[scope.config.idProperty],
-									scope.acDisplay = value.name,
-									scope.display = value.name
+									scope.acDisplay = value[scope.config.nameProperty],
+									scope.display = value[scope.config.nameProperty]
 								})
 							})
 						}	
@@ -215,8 +229,8 @@ acas.module('acTypeahead', 'acas.ui.angular', 'underscorejs', function () {
 								scope.ngModel = null
 								scope.display = null
 							} else {
-								scope.ngModel = value.id //todo
-								scope.display = value.name //todo									
+								scope.ngModel = value[scope.config.idProperty]
+								scope.display = value[scope.config.nameProperty]									
 							}
 							scope.showBox = false
 						})
