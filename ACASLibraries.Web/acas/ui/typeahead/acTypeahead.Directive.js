@@ -19,7 +19,7 @@ acas.module('acTypeahead', 'acas.ui.angular', 'underscorejs', function () {
 					nameProperty: 'name', // if not passed in will be set to same as dataSearch if dataSearch is not a function, if dataSearch is array it will be first element
 					selectionFormat: 'name',
 					searchPath: '', //if searchPath is used, it will override data/dataSearch
-					data: null, //array of objects
+					data: null, //array of objects or can be a function that returns an array - with large data sets a function should always be passed
 					dataSearch: 'name', // property or properties to be searched, can be a function, a string (property name), or an array of strings to search on multiple properties
 					optionFormat: null, //if not passed in, template uses nameProperty of item in watch instead of bind
 					inputClass: 'form-control'
@@ -65,10 +65,10 @@ acas.module('acTypeahead', 'acas.ui.angular', 'underscorejs', function () {
 						if (typeof (scope.config.dataSearch) === 'function') {
 							results = scope.config.dataSearch(scope.config.data, search)
 						} else {
-							//should be a string array - see above, if string literal is passed it's converted to single-element array, allows for searching on any number of properties
-							var data = scope.config.data
+							// if data is coming from a function, invoke function, otherwise get data
+							var data = typeof (scope.config.data) === 'function' ? scope.config.data() : scope.config.data
+							//dataSearch should be a string array  - see above, if string literal is passed it's converted to single-element array, allows for searching on any number of properties
 							var searchProperties = scope.config.dataSearch
-							
 							for (var i = 0; i < data.length; i++) {
 								for (var j = 0; j < searchProperties.length; j++) {
 									if (data[i][searchProperties[j]] && data[i][searchProperties[j]].toString().toLowerCase().indexOf(search.trim().toLowerCase()) !== -1) {
@@ -78,7 +78,6 @@ acas.module('acTypeahead', 'acas.ui.angular', 'underscorejs', function () {
 								}
 							}
 						}
-	
 						deferred.resolve(results)
 					}
 					return deferred.promise
@@ -94,25 +93,21 @@ acas.module('acTypeahead', 'acas.ui.angular', 'underscorejs', function () {
 						if (input && input.val().trim().length > 2) {
 							getData(input.val().trim()).then(function (data) {
 								$timeout(function () {
-									scope.$apply(function () {
-										scope.searchResults = data
-										scope.activeItem = -1
-										if (showResults) {
-											scope.showBox = true
-										}
-									})
+									scope.searchResults = data
+									scope.activeItem = -1
+									if (showResults) {
+										scope.showBox = true
+									}
 								})
 							})														
 						}
 						else {
 							$timeout(function () {
-								scope.$apply(function () {
-									scope.searchResults = []
-									if (showResults) {
-										scope.showBox = true
-									}
-								})
-							})
+								scope.searchResults = []
+								if (showResults) {
+									scope.showBox = true
+								}
+							})		
 						}
 
 					}, 250)
@@ -125,7 +120,7 @@ acas.module('acTypeahead', 'acas.ui.angular', 'underscorejs', function () {
 					}
 					else {
 						var optionTemplateHtml
-						var inputTemplate = '<input class="ac-typeahead {{config.inputClass}}" placeholder="Search..."  ng-model="display" ng-change="ngChange" ng-disabled="ngDisabled"/>'
+						var inputTemplate = '<input class="ac-typeahead {{config.inputClass}}" placeholder="Search..."  ng-model="display" ng-model-options="{ debounce: 300 }" ng-change="ngChange" ng-disabled="ngDisabled"/>'
 						var dropdownTemplatePre = '<div ng-show="showBox" class="ac-typeahead-dropdown" tabindex="-1">'
 						if (scope.config.optionFormat) {
 							optionTemplateHtml = '<div class="ac-typeahead-dropdown-item" ng-class="{active: activeItem === $index}" ng-repeat="item in searchResults" ng-click="selectItem(item)" ng-bind-html="config.optionFormat(item)"></div>'
@@ -166,14 +161,11 @@ acas.module('acTypeahead', 'acas.ui.angular', 'underscorejs', function () {
 					scope.$watch(function () { return value },
 						function () {
 							$timeout(function () {
-								if (Object.keys(value).length > 0) {
-									scope.$apply(function () {
-										scope.ngModel = value
-										value = {}
-									})
+								if (Object.keys(value).length > 0) {		
+									scope.ngModel = value
+									value = {}
 								}
 							})
-							
 						}
 					)
 				}
@@ -187,7 +179,6 @@ acas.module('acTypeahead', 'acas.ui.angular', 'underscorejs', function () {
 							value[scope.config.nameProperty] = scope.acDisplay
 
 							search()
-	
 						}
 					)
 
@@ -195,11 +186,9 @@ acas.module('acTypeahead', 'acas.ui.angular', 'underscorejs', function () {
 					scope.$watch(function () { return value },
 						function () {
 							$timeout(function () {
-								scope.$apply(function () {
-									scope.ngModel = value[scope.config.idProperty],
-									scope.acDisplay = value[scope.config.nameProperty],
-									scope.display = value[scope.config.nameProperty]
-								})
+								scope.ngModel = value[scope.config.idProperty],
+								scope.acDisplay = value[scope.config.nameProperty],
+								scope.display = value[scope.config.nameProperty]					
 							})
 						}	
 					)
@@ -207,19 +196,17 @@ acas.module('acTypeahead', 'acas.ui.angular', 'underscorejs', function () {
 
 				//when selecting an item, update value
 				scope.selectItem = function (item) {
-					$timeout(function () {
-						scope.$apply(function () {
-							value = item
-							scope.showBox = false
-							scope.searchResults = {}
-						})
+					$timeout(function () {		
+						value = item
+						scope.showBox = false
+						scope.searchResults = {}
 					})
 				}
 
 				var setupInput = function () {
 					//on blur, update the model back to value - if user typed but didn't select a new item to be placed in value, this resets the display
 					var leave = function () {
-						scope.$apply(function () {
+						$timeout(function () {
 							//when you blur, reset the model to value in the model							
 							//but if there's only one item in searchResults, use that item
 							//also, if it's empty, clear the model
@@ -265,7 +252,7 @@ acas.module('acTypeahead', 'acas.ui.angular', 'underscorejs', function () {
 								if (scope.showBox && scope.searchResults.length > scope.activeItem && scope.activeItem !== -1) {
 									scope.selectItem(scope.searchResults[scope.activeItem])
 								} else if (!scope.showBox) {
-									scope.$apply(function () { scope.showBox = true })
+									$timeout(function () { scope.showBox = true })
 								}
 								break
 						}
@@ -274,13 +261,13 @@ acas.module('acTypeahead', 'acas.ui.angular', 'underscorejs', function () {
 
 					//search every keystroke
 					input.on('keyup textInput', function (event) {
-						if (event.type === 'textInput' || !_.contains([40, 38, 13], event.which)) {
+						if ((event.type === 'textInput' || !_.contains([40, 38, 13], event.which)) && (input && input.val().trim().length > 2)) {
 							search(true)
 						}
 					})
 					//show box on focus or click, click toggles it
 					input.on('click', function () {
-						scope.$apply(function () {
+						$timeout(function () {
 							scope.showBox = !scope.showBox
 						})
 					})
@@ -288,9 +275,8 @@ acas.module('acTypeahead', 'acas.ui.angular', 'underscorejs', function () {
 					input.on('focus', function () {
 						$timeout(function () { //the timeout prevents this from firing before the click event if clicking on the box when not focused
 							//this prevents it from opening and immediately shutting on focus/click collision
-							scope.$apply(function () {
-								scope.showBox = true
-							})
+							scope.showBox = true
+							
 						}, 300)
 					})
 				}		
