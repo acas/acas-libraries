@@ -213,7 +213,7 @@ acas.module('acas.utility', 'underscorejs', function () {
 				//anything smaller than this value is probably zero and is a floating point error
 				//in the past we've had issues with values very close to zero displaying as NaN.00
 				//this is a less-than-ideal way around that problem. 
-				if (Math.abs(value) < 1e-10) { 
+				if (Math.abs(value) < 9e-7) { 
 					value = 0
 				}
 
