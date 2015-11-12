@@ -446,11 +446,9 @@ acas.module('acas.data.model', 'underscorejs', 'Q', function () {
 
 				//load model
 				var load = function () {
-					modelProcessQueue.push(name)
 					api.load(name, target).then(function () {
 						modelDeferred.resolve(name)
 					})
-
 				}
 
 				//model queue loader for loading dependencies
