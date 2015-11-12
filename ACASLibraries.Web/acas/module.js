@@ -158,9 +158,9 @@ acas.libraryDependency('jquery.ui', function () {
 })
 
 acas.libraryDependency('select2', function () {
-	return (typeof(jQuery) === 'function') && jQuery.fn.select2 && typeof(jQuery.fn.select2.defaults) === 'object'
+	return jQuery && jQuery.fn.select2 && typeof(jQuery.fn.select2.defaults) === 'object'
 })
 
 acas.libraryDependency('signalR', function () {
-	return (typeof(jQuery) === 'function') && jQuery.signalR
+	return jQuery && jQuery.signalR
 })

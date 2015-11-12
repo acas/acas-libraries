@@ -131,7 +131,7 @@ acas.module('acTags', 'acas.ui.angular', 'select2', 'underscorejs', function () 
 					function (newValue, oldValue) {
 						if (newValue !== oldValue) {
 							scope.ngModel = _.reject(scope.ngModel, function (x) { return _.pluck(scope.acOptions, config.idProperty).indexOf(x[config.idProperty]) === -1 })
-							var modelValues = _.pluck(scope.ngModel, config.idProperty)
+							copyPropertiesToOptions(scope.ngModel, scope.acOptions)
 							input.select2('val', _.pluck(scope.ngModel, config.idProperty))
 						}						
 					}
