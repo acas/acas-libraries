@@ -427,8 +427,6 @@ acas.module('acas.data.model', 'underscorejs', 'Q', function () {
 			asyncForEach(modelNames, valueOrResult(acas.data.model.asyncLoad), function (name) {
 				var modelProcessQueue = []
 				var modelDeferred = Q.defer()
-				//add model to be processed
-				modelProcessQueue.push(name)
 				//add dependencies for this model
 				if (models[name].dependencies != null) {
 					var dependencies = valueOrResult(models[name].dependencies)
@@ -445,6 +443,8 @@ acas.module('acas.data.model', 'underscorejs', 'Q', function () {
 						}
 					})
 				}
+				//add model to be processed
+				modelProcessQueue.push(name)
 
 				//model queue loader
 				if (modelProcessQueue.length) {
