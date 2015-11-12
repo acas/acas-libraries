@@ -443,30 +443,33 @@ acas.module('acas.data.model', 'underscorejs', 'Q', function () {
 						}
 					})
 				}
-				//add model to be processed
-				modelProcessQueue.push(name)
 
-				//model queue loader
+				//load model
+				var load = function () {
+					modelProcessQueue.push(name)
+					api.load(name, target).then(function () {
+						modelDeferred.resolve(name)
+					})
+
+				}
+
+				//model queue loader for loading dependencies
 				if (modelProcessQueue.length) {
 					//get the next model to process and load it
-					asyncForEach(modelProcessQueue, true, function (name) {
+					asyncForEach(modelProcessQueue, true, function (dependencyName) {
 						var loadDeferred = Q.defer()
-						if (models[name].$acDataLoadState !== loadState.loaded) {
-							api.load(name, target).then(function () {
+						if (models[dependencyName].$acDataLoadState !== loadState.loaded) {
+							api.load(dependencyName, target).then(function () {
 								loadDeferred.resolve()
 							})
 						} else {
 							loadDeferred.resolve()
 						}
 						return loadDeferred.promise
-					}).then(function () {
-						//no more models to process
-						modelDeferred.resolve(name)
 					})
+					.then(load)
 				} else {
-					window.setTimeout(function () {
-						modelDeferred.resolve(name)
-					}, 0)
+					window.setTimeout(load, 0)
 				}
 
 				return modelDeferred.promise
