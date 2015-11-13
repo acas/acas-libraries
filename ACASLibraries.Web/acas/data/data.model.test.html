@@ -1,0 +1,45 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<meta charset="utf-8" />
+	<title></title>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/q.js/1.4.1/q.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
+	<script src="../module.js"></script>
+	<script src="../config.js"></script>
+	<script src="../Acas.Module.js"></script>
+	<script src="data.model.js"></script>
+	<script type="text/javascript">
+		var target = {
+			loadStateTestLoaded: 0
+		}
+
+		var done = function () {
+			console.log(target.loadStateTestLoaded.toString() + '== 1')
+			console.log('State: '+acas.data.model.getLoadState('loadStateTest'))
+		}
+
+		acas.data.model.define('loadStateTest', {
+			load: function (t) {
+				t.loadStateTestLoaded++
+				return t
+			}
+		})
+		console.log("Test1")
+		acas.data.model.require(['loadStateTest'], target).then(function () {
+			console.log('State: '+acas.data.model.getLoadState('loadStateTest'))
+			console.log("Test2")
+			acas.data.model.require(['loadStateTest'], target).then(function () {
+				console.log("Test3")
+				done()
+			})
+		})
+
+	</script>
+</head>
+<body>
+
+</body>
+</html>

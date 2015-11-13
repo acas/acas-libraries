@@ -435,20 +435,31 @@ acas.module('acas.data.model', 'underscorejs', 'Q', function () {
 					}
 					_.each(dependencies, function (dependencyName) {
 						//model is not defined, check to see if it's ok to ignore this problem
-						if (!models[dependencyName]) {
-							if (valueOrResult(api.throwOnUndefinedDependencies))
-								throw 'Model ' + name + ' dependency ' + dependencyName + ' not defined'
-						} else {
+						if (models[dependencyName]) {
 							modelProcessQueue.push(dependencyName)
+						} else if (valueOrResult(api.throwOnUndefinedDependencies)) {
+							throw 'Model ' + name + ' dependency ' + dependencyName + ' not defined'
 						}
 					})
 				}
 
 				//load model
 				var load = function () {
-					api.load(name, target).then(function () {
-						modelDeferred.resolve(name)
-					})
+					var waitForExistingLoad = function () {
+						if (models[name].$acDataLoadState === loadState.loaded) {
+							modelDeferred.resolve(name)
+						} else {
+							window.setTimeout(waitForExistingLoad, 1)
+						}
+					}
+
+					if(models[name].$acDataLoadState === loadState.uninitialized) {
+						api.load(name, target).then(function () {
+							modelDeferred.resolve(name)
+						})
+					} else {
+						waitForExistingLoad()
+					}
 				}
 
 				//model queue loader for loading dependencies
@@ -467,7 +478,7 @@ acas.module('acas.data.model', 'underscorejs', 'Q', function () {
 					})
 					.then(load)
 				} else {
-					window.setTimeout(load, 0)
+					load()
 				}
 
 				return modelDeferred.promise

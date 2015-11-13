@@ -107,11 +107,13 @@ describe('acas.data.model', function () {
 	})
 	
 	describe('require function', function () {
-		var target = {}
+		var target = {
+			loadStateTestLoaded: 0
+		}
 		beforeEach(function (done) {
 			acas.data.model.define('loadStateTest', {
 				load: function (t) {
-					t.loadStateTestLoaded = !t.loadStateTestLoaded
+					t.loadStateTestLoaded++
 					return t
 				}
 			})
@@ -123,17 +125,19 @@ describe('acas.data.model', function () {
 		})
 
 		it('should only load a model once', function () {
-				expect(target.loadStateTestLoaded).toBe(true)
-				expect(acas.data.model.getLoadState('loadStateTest')).toBe('loaded')
+			expect(target.loadStateTestLoaded).toBe(1)
+			expect(acas.data.model.getLoadState('loadStateTest')).toBe('loaded')
 		})
 	})
 
 	describe('load function', function () {
-		var target = {}
+		var target = {
+			loadStateTestLoaded: 0
+		}
 		beforeEach(function (done) {
 			acas.data.model.define('loadStateTest', {
 				load: function (t) {
-					t.loadStateTestLoaded = !t.loadStateTestLoaded
+					t.loadStateTestLoaded++
 					return t
 				}
 			})
@@ -145,7 +149,7 @@ describe('acas.data.model', function () {
 		})
 
 		it('should load the data every time it\'s called', function () {
-			expect(target.loadStateTestLoaded).toBe(false)
+			expect(target.loadStateTestLoaded).toBe(2)
 			expect(acas.data.model.getLoadState('loadStateTest')).toBe('loaded')
 		})
 	})

@@ -6,7 +6,7 @@
     <Content Include="acas\acValidation.Service.js" />
     <Content Include="acas\config.js" />
     <Content Include="acas\data\data.model.js" />
-    <None Include="acas\data\data.model.test.html" />
+    <Content Include="acas\data\data.model.test.html" />
     <Content Include="acas\data\data.model.test.js" />
     <Content Include="acas\formatting\FormattingFilters.Filter.js" />
     <Content Include="acas\formatting\FormattingFilters.Filter.test.js" />
