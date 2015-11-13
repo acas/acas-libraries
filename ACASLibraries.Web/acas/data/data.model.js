@@ -467,13 +467,9 @@ acas.module('acas.data.model', 'underscorejs', 'Q', function () {
 					//get the next model to process and load it
 					asyncForEach(modelProcessQueue, true, function (dependencyName) {
 						var loadDeferred = Q.defer()
-						if (models[dependencyName].$acDataLoadState !== loadState.loaded) {
-							api.load(dependencyName, target).then(function () {
-								loadDeferred.resolve()
-							})
-						} else {
+						api.require(dependencyName, target).then(function () {
 							loadDeferred.resolve()
-						}
+						})
 						return loadDeferred.promise
 					})
 					.then(load)
