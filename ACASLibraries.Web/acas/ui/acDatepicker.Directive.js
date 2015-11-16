@@ -39,8 +39,7 @@
 					.append(jQuery('<div/>')
 						.css('vertical-align', 'middle')
 						.css('top', '0'))
-						.append(jQuery('<span/>')
-							.css('display', 'block')
+						.append(jQuery('<div/>')
 							.css('vertical-align', 'middle')	
 							.css('top', '0')
 							.css('padding', '0')
@@ -48,8 +47,9 @@
 							.css('height', '100%'))
 
 		// directive template
-		var template = jQuery('<div/>')
+		var template = jQuery('<div/>').css('display','inline-block')
 			.append(jQuery('<div/>')
+				.css('display', 'inline-block')
 				.css('float', 'clear')
 				.append(editor)
 				.append(removeButton)).html()
