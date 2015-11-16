@@ -21,7 +21,6 @@
 					.attr('ng-disabled', 'acDisabled'))
 					.css('display', 'inline-block')
 					.css('height', '100%')
-					.css('vertical-align', 'top')
 					.css('width', '84.95%')
 
 		// remove button scaffolding
