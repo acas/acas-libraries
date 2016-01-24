@@ -140,8 +140,7 @@ acas.libraryDependency('jquery.blockUI', function () {
 
 acas.libraryDependency('ui.bootstrap', function () {	
 	try {
-		angular.module('####', [])
-		angular.injector(['####', 'ng', 'ui.bootstrap']).get('$modal')
+		angular.module('ui.bootstrap')
 	}
 	catch (ex) {
 		return false
