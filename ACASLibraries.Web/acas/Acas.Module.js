@@ -1,14 +1,21 @@
 ﻿'use strict'
 
-acas.module('acas.angular', 'angularjs', 'ui.bootstrap', function () { //is it possible to only specify acas.notifications.angular as a dependency if ui.bootstrap is loaded? I'd prefer not to require ui.bootstrap for all of the angular components just because one of them relies on it.
-	acas.angular = angular.module('acas.angular', [
-		'acas.notifications.angular',
+acas.module('acas.angular', 'angularjs', function () {
+	var angularDependencies = [
 		'acas.formatting.angular',
 		'acas.utility.angular',
 		'acas.ui.angular',
 		'acas.reporting.angular'
-	])
+	]
 
+	//add acas.notifications.angular IF ui.bootstrap is loaded
+	try {
+		angular.module('ui.bootstrap')
+		angularDependencies.push('acas.notifications.angular')
+	}
+	catch (ex) { }
+
+	acas.angular = angular.module('acas.angular', angularDependencies)
 
 	//setup the scope object
 	acas.angular.run(['$rootScope', function ($rootScope) {
