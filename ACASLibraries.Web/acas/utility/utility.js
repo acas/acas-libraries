@@ -102,7 +102,7 @@ acas.module('acas.utility', 'underscorejs', function () {
 					if (dateString !== undefined
 						&& dateString != null
 						&& dateString != '') {
-						var dateParts = acas.utility.formatting.formatDate(dateString).split("/")
+						var dateParts = utilityApi.formatting.formatDate(dateString).split("/")
 						if (dateParts.length === 3) {
 							var month = getMonthAbbreviation(parseInt(dateParts[0]))
 							return month + " " + dateParts[1] + ", " + dateParts[2]
@@ -121,7 +121,7 @@ acas.module('acas.utility', 'underscorejs', function () {
 				var year = date.getFullYear();
 				var month = date.getMonth();
 				var day = date.getDate();
-				return formatting.padZero((month + 1), 2) + '/' + formatting.padZero(day, 2) + '/' + year;
+				return utilityApi.formatting.padZero((month + 1), 2) + '/' + utilityApi.formatting.padZero(day, 2) + '/' + year;
 			},
 
 			formatTime: function (date) {
@@ -507,7 +507,7 @@ acas.module('acas.utility', 'underscorejs', function () {
 				} else {
 					var year = Math.floor(monthId / 100);
 					var month = monthId % 100;
-					return year + "-" + formatting.padZero(month, 2);
+					return year + "-" + utilityApi.formatting.padZero(month, 2);
 				}
 			},
 
