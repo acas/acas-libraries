@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Data;
+using System.Data.Common;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Web;
-using System.Data.Sql;
-using System.Data.SqlClient;
-using System.Data;
 
 namespace ACASLibraries
 {
@@ -23,7 +23,7 @@ namespace ACASLibraries
 		/// This method must be implemented in the subclass inheriting DataAccess. It should return an open SqlConnection object pointing to the application's database.
 		/// </summary>
 		/// <returns>New open SqlConnection object</returns>
-		public abstract SqlConnection CreateConnection();
+		public abstract IDbConnection CreateConnection();
 		#endregion
 
 		#region GetDataTable(); 			/// TODO - what happens in these methods if the proc returns no result sets? More than one?
@@ -38,12 +38,12 @@ namespace ACASLibraries
 		/// <param name="timeout">The SqlCommand.CommandTimeout to wait before terminating the command.</param>
 		/// <returns>DataTable object containing the resultset</returns>
 		/// <exception cref="ACASLibrariesException">Any failure inside this method will throw an ACASLibrariesException containing all the details of the SqlCommand in addition to the standard Exception details.</exception>
-		public DataTable GetDataTable(SqlConnection conn, SqlTransaction transaction, string procedureName, SqlParameter[] parameters = null, int? timeout = null)
+		public DataTable GetDataTable(IDbConnection conn, IDbTransaction transaction, string procedureName, IDbDataParameter[] parameters = null, int? timeout = null)
 		{
 
-			SqlCommand cmd = null;
+			IDbCommand cmd = null;
 			DataTable dt = new DataTable();
-			SqlDataReader sdr = null;
+			IDataReader sdr = null;
 			try
 			{
 				cmd = conn.CreateCommand();
@@ -56,12 +56,14 @@ namespace ACASLibraries
 				cmd.CommandText = procedureName;
 				if (parameters != null)
 				{
-					cmd.Parameters.AddRange(parameters);
+					foreach(IDataParameter p in parameters) {
+						cmd.Parameters.Add(p);
+					}
 				}
 				sdr = cmd.ExecuteReader();
 				dt.Load(sdr);
 			}
-			catch (SqlException ex)
+			catch (DbException ex)
 			{
 				throw new ACASLibrariesException("An error occurred while retrieving data.", cmd, ex);
 			}
@@ -92,10 +94,10 @@ namespace ACASLibraries
 		/// <param name="timeout">The SqlCommand.CommandTimeout to wait before terminating the command.</param>
 		/// <returns>DataTable object containing the resultset</returns>		
 		/// <exception cref="ACASLibrariesException">Any failure inside this method will throw an ACASLibrariesException containing all the details of the SqlCommand in addition to the standard Exception details.</exception>
-		public DataTable GetDataTable(IsolationLevel isolationLevel, string procedureName, SqlParameter[] parameters = null, int? timeout = null)
+		public DataTable GetDataTable(IsolationLevel isolationLevel, string procedureName, IDbDataParameter[] parameters = null, int? timeout = null)
 		{
-			SqlConnection conn = null;
-			SqlTransaction transaction = null;
+			IDbConnection conn = null;
+			IDbTransaction transaction = null;
 			DataTable dt;
 			try
 			{
@@ -139,7 +141,7 @@ namespace ACASLibraries
 		/// <param name="timeout">The SqlCommand.CommandTimeout to wait before terminating the command.</param>
 		/// <returns>DataTable object containing the resultset</returns>
 		/// <exception cref="ACASLibrariesException">Any failure inside this method will throw an ACASLibrariesException containing all the details of the SqlCommand in addition to the standard Exception details.</exception>
-		public DataTable GetDataTable(string procedureName, SqlParameter[] parameters = null, int? timeout = null)
+		public DataTable GetDataTable(string procedureName, IDbDataParameter[] parameters = null, int? timeout = null)
 		{
 			return GetDataTable(IsolationLevel.ReadCommitted, procedureName, parameters, timeout);
 		}
@@ -152,9 +154,9 @@ namespace ACASLibraries
 		/// <param name="parameter">A single parameter to execute the stored procedure with.</param>		
 		/// <returns>DataTable object containing the resultset</returns>
 		/// <exception cref="ACASLibrariesException">Any failure inside this method will throw an ACASLibrariesException containing all the details of the SqlCommand in addition to the standard Exception details.</exception>
-		public DataTable GetDataTable(string procedureName, SqlParameter parameter)
+		public DataTable GetDataTable(string procedureName, IDbDataParameter parameter)
 		{
-			return GetDataTable(procedureName, new SqlParameter[1] { parameter });
+			return GetDataTable(procedureName, new IDbDataParameter[1] { parameter });
 		}
 
 		/// <summary>
@@ -167,9 +169,9 @@ namespace ACASLibraries
 		/// <param name="parameter">A single parameter to execute the stored procedure with.</param>
 		/// <returns>DataTable object containing the resultset</returns>
 		/// <exception cref="ACASLibrariesException">Any failure inside this method will throw an ACASLibrariesException containing all the details of the SqlCommand in addition to the standard Exception details.</exception>
-		public DataTable GetDataTable(SqlConnection conn, SqlTransaction transaction, string procedureName, SqlParameter parameter)
+		public DataTable GetDataTable(IDbConnection conn, IDbTransaction transaction, string procedureName, IDbDataParameter parameter)
 		{
-			return GetDataTable(conn, transaction, procedureName, new SqlParameter[1] { parameter });
+			return GetDataTable(conn, transaction, procedureName, new IDbDataParameter[1] { parameter });
 		}
 
 
@@ -186,9 +188,9 @@ namespace ACASLibraries
 		/// <param name="parameters">An array of SqlParameter objects</param>
 		/// <param name="timeout">Number of milliseconds for the command timeout</param>
 		/// <returns></returns>
-		public DataSet GetDataSet(string procedureName, SqlParameter[] parameters = null, int? timeout = null)
+		public DataSet GetDataSet(string procedureName, IDbDataParameter[] parameters = null, int? timeout = null)
 		{
-			SqlConnection conn = CreateConnection();
+			SqlConnection conn = (SqlConnection)CreateConnection();
 			SqlTransaction transaction = conn.BeginTransaction(IsolationLevel.ReadCommitted);
 			SqlCommand cmd = conn.CreateCommand();
 			SqlDataAdapter da = null;
@@ -205,9 +207,10 @@ namespace ACASLibraries
 				cmd.CommandText = procedureName;
 				if (parameters != null)
 				{
-					cmd.Parameters.AddRange(parameters);
+					foreach(IDbDataParameter p in parameters) {
+						cmd.Parameters.Add(parameters);
+					}
 				}
-
 				da = new SqlDataAdapter(cmd);
 				da.Fill(ds);
 				transaction.Commit();
@@ -254,11 +257,11 @@ namespace ACASLibraries
 		/// <param name="parameters">An array of input parameters to run the proc or function with</param>
 		/// <param name="timeout">The SqlCommand.CommandTimeout to wait before terminating the command.</param>
 		/// <returns>The result of the scalar valued function or the first column of the first row of the result set the proc returns.</returns>
-		public object GetScalar(SqlConnection conn, SqlTransaction transaction, string sqlObjectName, SqlObjectType sqlObjectType, SqlParameter[] parameters = null, int? timeout = null)
+		public object GetScalar(IDbConnection conn, IDbTransaction transaction, string sqlObjectName, SqlObjectType sqlObjectType, IDbDataParameter[] parameters = null, int? timeout = null)
 		{
-			SqlCommand cmd = null;
+			IDbCommand cmd = null;
 			DataTable dt = new DataTable();
-			SqlDataReader sdr = null;
+			IDataReader sdr = null;
 			object result;
 			try
 			{
@@ -272,7 +275,9 @@ namespace ACASLibraries
 				cmd.CommandText = sqlObjectName;
 				if (parameters != null)
 				{
-					cmd.Parameters.AddRange(parameters);
+					foreach(IDbDataParameter p in parameters) {
+						cmd.Parameters.Add(p);
+					}
 				}
 				if (sqlObjectType == SqlObjectType.ScalarValuedFunction)
 				{
@@ -289,9 +294,12 @@ namespace ACASLibraries
 							throw new ACASLibrariesException("The stored procedure/scalar function you are trying to run has too many parameters with terribly uninformative names (@Result, @Result0, @Result1, @Result2...@Result9). Please write code that doesn't make me want to kill myself. Thanks.");
 						}
 					}
-					cmd.Parameters.Add(new SqlParameter(returnParameterName, null) { Direction = ParameterDirection.ReturnValue });
+					IDbDataParameter outputParameter = cmd.CreateParameter();
+					outputParameter.ParameterName = returnParameterName;
+					outputParameter.Direction = ParameterDirection.ReturnValue;
+					cmd.Parameters.Add(outputParameter);
 					cmd.ExecuteNonQuery();
-					result = cmd.Parameters[returnParameterName].Value;
+					result = outputParameter.Value;
 				}
 				else
 				{
@@ -302,7 +310,7 @@ namespace ACASLibraries
 				return result;
 
 			}
-			catch (SqlException ex)
+			catch (DbException ex)
 			{
 				throw new ACASLibrariesException("An error occurred while retrieving data.", cmd, ex);
 			}
@@ -331,10 +339,10 @@ namespace ACASLibraries
 		/// <param name="parameters">An array of input parameters to run the proc or function with</param>
 		/// <param name="timeout">The SqlCommand.CommandTimeout to wait before terminating the command.</param>
 		/// <returns>The result of the scalar valued function or the first column of the first row of the result set the proc returns.</returns>
-		public object GetScalar(string sqlObjectName, SqlObjectType sqlObjectType, SqlParameter[] parameters = null, int? timeout = null)
+		public object GetScalar(string sqlObjectName, SqlObjectType sqlObjectType, IDbDataParameter[] parameters = null, int? timeout = null)
 		{
-			SqlConnection conn = null;
-			SqlTransaction transaction = null;
+			IDbConnection conn = null;
+			IDbTransaction transaction = null;
 			object result;
 			try
 			{
@@ -377,9 +385,9 @@ namespace ACASLibraries
 		/// <param name="parameter">A single input parameter to run the proc or function with</param>
 		/// <param name="timeout">The SqlCommand.CommandTimeout to wait before terminating the command.</param>
 		/// <returns>The result of the scalar valued function or the first column of the first row of the result set the proc returns.</returns>
-		public object GetScalar(string sqlObjectName, SqlObjectType sqlObjectType, SqlParameter parameter, int? timeout = null)
+		public object GetScalar(string sqlObjectName, SqlObjectType sqlObjectType, IDbDataParameter parameter, int? timeout = null)
 		{
-			return GetScalar(sqlObjectName, sqlObjectType, new SqlParameter[1] { parameter }, timeout);
+			return GetScalar(sqlObjectName, sqlObjectType, new IDbDataParameter[1] { parameter }, timeout);
 		}
 
 		#endregion
@@ -396,10 +404,10 @@ namespace ACASLibraries
 		/// <param name="parameters">A parameter to execute the stored procedure with</param>
 		/// <param name="timeout">The SqlCommand.CommandTimeout to wait before terminating the command.</param>
 		/// <exception cref="ACASLibrariesException">Any failure inside this method will throw an ACASLibrariesException containing all the details of the SqlCommand in addition to the standard Exception details.</exception>
-		public void SetData(IsolationLevel isolationLevel, string procedureName, SqlParameter[] parameters = null, int? timeout = null)
+		public void SetData(IsolationLevel isolationLevel, string procedureName, IDbDataParameter[] parameters = null, int? timeout = null)
 		{
-			SqlConnection conn = null;
-			SqlTransaction transaction = null;
+			IDbConnection conn = null;
+			IDbTransaction transaction = null;
 			try
 			{
 				conn = this.CreateConnection();
@@ -440,7 +448,7 @@ namespace ACASLibraries
 		/// <param name="parameters">An array of parameters to execute the stored procedure with.</param>
 		/// <param name="timeout">The SqlCommand.CommandTimeout to wait before terminating the command.</param>
 		/// <exception cref="ACASLibrariesException">Any failure inside this method will throw an ACASLibrariesException containing all the details of the SqlCommand in addition to the standard Exception details.</exception>
-		public void SetData(string procedureName, SqlParameter[] parameters = null, int? timeout = null)
+		public void SetData(string procedureName, IDbDataParameter[] parameters = null, int? timeout = null)
 		{
 			SetData(IsolationLevel.Serializable, procedureName, parameters, timeout);
 		}
@@ -456,9 +464,9 @@ namespace ACASLibraries
 		/// <param name="parameters">An array of parameters to execute the stored procedure with</param>
 		/// <param name="timeout">The SqlCommand.CommandTimeout to wait before terminating the command.</param>
 		/// /// <exception cref="ACASLibrariesException">Any failure inside this method will throw an ACASLibrariesException containing all the details of the SqlCommand in addition to the standard Exception details.</exception>
-		public void SetData(SqlConnection conn, SqlTransaction transaction, string procedureName, SqlParameter[] parameters = null, int? timeout = null)
+		public void SetData(IDbConnection conn, IDbTransaction transaction, string procedureName, IDbDataParameter[] parameters = null, int? timeout = null)
 		{
-			SqlCommand cmd = null;
+			IDbCommand cmd = null;
 			try
 			{
 				cmd = conn.CreateCommand();
@@ -473,7 +481,9 @@ namespace ACASLibraries
 
 				if (parameters != null)
 				{
-					cmd.Parameters.AddRange(parameters);
+					foreach(IDbDataParameter p in parameters) {
+						cmd.Parameters.Add(p);
+					}
 				}
 				cmd.ExecuteNonQuery();
 			}
@@ -502,10 +512,10 @@ namespace ACASLibraries
 		/// <param name="parameters">Optional array of parameters</param>
 		/// <returns>Open SqlDataReader object containing the command result</returns>
 		/// <exception cref="ACASLibrariesException">Any failure inside this method will throw an ACASLibrariesException containing all the details of the SqlCommand in addition to the standard Exception details.</exception>
-		public SqlDataReader SetDataWithReader(SqlConnection conn, SqlTransaction transaction, string procedureName, SqlParameter[] parameters = null)
+		public IDataReader SetDataWithReader(IDbConnection conn, IDbTransaction transaction, string procedureName, IDbDataParameter[] parameters = null)
 		{
-			SqlCommand cmd = null;
-			SqlDataReader dr = null;
+			IDbCommand cmd = null;
+			IDataReader dr = null;
 			try
 			{
 				cmd = conn.CreateCommand();
@@ -514,11 +524,13 @@ namespace ACASLibraries
 				cmd.CommandText = procedureName;
 				if (parameters != null)
 				{
-					cmd.Parameters.AddRange(parameters);
+					foreach(IDbDataParameter p in parameters) {
+						cmd.Parameters.Add(p);
+					}
 				}
 				dr = cmd.ExecuteReader();
 			}
-			catch (SqlException ex)
+			catch (DbException ex)
 			{
 				throw new ACASLibrariesException("An error occurred while saving data.", cmd, ex);
 			}

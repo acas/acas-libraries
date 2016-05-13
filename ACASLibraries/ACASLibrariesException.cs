@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text;
-using System.Data.SqlClient;
 
 namespace ACASLibraries
 {
@@ -35,7 +35,7 @@ namespace ACASLibraries
 		/// <param name="message"></param>
 		/// <param name="cmd">The SqlCommand that caused the error. To view the details of this SqlCommand, execute the ToString() method on the exception.</param>
 		/// <param name="innerException">The inner exception's message will be appended to the message for convenience when debugging in other applications.</param>
-		public ACASLibrariesException(string message, SqlCommand cmd, Exception innerException)
+		public ACASLibrariesException(string message, IDbCommand cmd, Exception innerException)
 			: base(message + "\r\nInner Exception: -->\r\n" + innerException.Message, innerException)
 		{
 			this.SqlCommandDetails = DebugUtility.GetSqlCommandDetails(cmd);

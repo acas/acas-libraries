@@ -38,7 +38,7 @@ namespace ACASLibraries
 		/// </summary>
 		/// <param name="DataReader"></param>
 		/// <returns></returns>
-		public static StringDictionary DataReaderToStringDictionary(SqlDataReader DataReader)
+		public static StringDictionary DataReaderToStringDictionary(IDataReader DataReader)
 		{
 			return DataReaderToStringDictionary(DataReader, null);
 		}
@@ -49,7 +49,7 @@ namespace ACASLibraries
 		/// <param name="DataReader"></param>
 		/// <param name="StringDictionaryObject"></param>
 		/// <returns></returns>
-		public static StringDictionary DataReaderToStringDictionary(SqlDataReader DataReader, StringDictionary StringDictionaryObject)
+		public static StringDictionary DataReaderToStringDictionary(IDataReader DataReader, StringDictionary StringDictionaryObject)
 		{
 			//converts a single record query result (as a SqlDataReader) to a string dictionary
 			//StringDictionary oDBFields = new StringDictionary();
@@ -143,14 +143,19 @@ namespace ACASLibraries
 		/// <param name="sStoredProcedureName">Name of the stored procedure to be executed</param>
 		/// <param name="sArgumentNameValuePairs">SQL Parameter Name (including @), and Parameter Value</param>
 		/// <returns>returns number of rows affected or negitive error code if error occurs</returns>
-		public static int ExecuteNonQueryStoredProcedure(SqlConnection oOpenSqlConnection, string sStoredProcedureName, params object[] sArgumentNameValuePairs)
+		public static int ExecuteNonQueryStoredProcedure(IDbConnection oOpenSqlConnection, string sStoredProcedureName, params object[] sArgumentNameValuePairs)
 		{
 			int iNumberOfRowsAffected = -1;
-			SqlCommand oCmd = new SqlCommand(sStoredProcedureName, oOpenSqlConnection);
+			IDbCommand oCmd = oOpenSqlConnection.CreateCommand();
+			oCmd.CommandText = sStoredProcedureName;
 			oCmd.CommandType = CommandType.StoredProcedure;
 			for (int iArgumentIndex = 1; iArgumentIndex < sArgumentNameValuePairs.Length; iArgumentIndex += 2)
 			{
-				oCmd.Parameters.AddWithValue(sArgumentNameValuePairs[iArgumentIndex - 1].ToString(), sArgumentNameValuePairs[iArgumentIndex]);
+				IDbDataParameter p = oCmd.CreateParameter();
+				p.Direction = ParameterDirection.Input;
+				p.ParameterName = sArgumentNameValuePairs[iArgumentIndex - 1].ToString();
+				p.Value = sArgumentNameValuePairs[iArgumentIndex];
+				oCmd.Parameters.Add(p);
 			}
 			iNumberOfRowsAffected = oCmd.ExecuteNonQuery();
 			oCmd.Dispose();
@@ -167,16 +172,21 @@ namespace ACASLibraries
 		/// <param name="sStoredProcedureName">Name of the stored procedure to be executed</param>
 		/// <param name="sArgumentNameValuePairs">SQL Parameter Name (including @), and Parameter Value</param>
 		/// <returns>returns the identity created for a new row in the database</returns>
-		public static int ExecuteNonQueryStoredProcedureWithReturnedIdentity(SqlConnection oOpenSqlConnection, string sStoredProcedureName, params object[] sArgumentNameValuePairs)
+		public static int ExecuteNonQueryStoredProcedureWithReturnedIdentity(IDbConnection oOpenSqlConnection, string sStoredProcedureName, params object[] sArgumentNameValuePairs)
 		{
 			int iIdentity = 0;
-			SqlCommand oCmd = new SqlCommand(sStoredProcedureName, oOpenSqlConnection);
+			IDbCommand oCmd = oOpenSqlConnection.CreateCommand();
+			oCmd.CommandText = sStoredProcedureName;
 			oCmd.CommandType = CommandType.StoredProcedure;
 			for (int iArgumentIndex = 1; iArgumentIndex < sArgumentNameValuePairs.Length; iArgumentIndex += 2)
 			{
-				oCmd.Parameters.AddWithValue(sArgumentNameValuePairs[iArgumentIndex - 1].ToString(), sArgumentNameValuePairs[iArgumentIndex]);
+				IDbDataParameter p = oCmd.CreateParameter();
+				p.Direction = ParameterDirection.Input;
+				p.ParameterName = sArgumentNameValuePairs[iArgumentIndex - 1].ToString();
+				p.Value = sArgumentNameValuePairs[iArgumentIndex];
+				oCmd.Parameters.Add(p);
 			}
-			SqlDataReader oDR = oCmd.ExecuteReader();
+			IDataReader oDR = oCmd.ExecuteReader();
 			if (oDR.Read())
 			{
 				iIdentity = ACASLibraries.Parser.ToInt(oDR[0]);
@@ -211,22 +221,26 @@ namespace ACASLibraries
 		///		);
 		/// </code>
 		/// </example>
-		public static int ExecuteNonQueryStoredProcedureWithinTransaction(SqlConnection oOpenSqlConnection, SqlTransaction oSqlTransaction, string sStoredProcedureName, params object[] a2oArgumentNameValuePairs)
-		{
+		public static int ExecuteNonQueryStoredProcedureWithinTransaction(IDbConnection oOpenSqlConnection, IDbTransaction oSqlTransaction, string sStoredProcedureName, params object[] a2oArgumentNameValuePairs) {
 			int iNumberOfRowsAffected = -1;
-			SqlCommand oCmd = new SqlCommand(sStoredProcedureName, oOpenSqlConnection);
+			IDbCommand oCmd = oOpenSqlConnection.CreateCommand();
+			oCmd.CommandText = sStoredProcedureName;
 			oCmd.CommandType = CommandType.StoredProcedure;
 			oCmd.Transaction = oSqlTransaction;
 			for (int iArgumentIndex = 1; iArgumentIndex < a2oArgumentNameValuePairs.Length; iArgumentIndex += 2)
 			{
-				oCmd.Parameters.AddWithValue(a2oArgumentNameValuePairs[iArgumentIndex - 1].ToString(), a2oArgumentNameValuePairs[iArgumentIndex]);
+				IDbDataParameter p = oCmd.CreateParameter();
+				p.Direction = ParameterDirection.Input;
+				p.ParameterName = a2oArgumentNameValuePairs[iArgumentIndex - 1].ToString();
+				p.Value = a2oArgumentNameValuePairs[iArgumentIndex];
+				oCmd.Parameters.Add(p);
 			}
 			iNumberOfRowsAffected = oCmd.ExecuteNonQuery();
 			oCmd.Dispose();
 			oCmd = null;
 			return iNumberOfRowsAffected;
 		}
-#endregion
+		#endregion
 
 		#region ExecuteNonQueryStoredProcedureWithReturnedIdentityWithinTransaction();
 		/// <summary>
@@ -250,17 +264,22 @@ namespace ACASLibraries
 		///		);
 		/// </code>
 		/// </example>
-		public static int ExecuteNonQueryStoredProcedureWithReturnedIdentityWithinTransaction(SqlConnection oOpenSqlConnection, SqlTransaction oSqlTransaction, string sStoredProcedureName, params object[] a2oArgumentNameValuePairs)
+		public static int ExecuteNonQueryStoredProcedureWithReturnedIdentityWithinTransaction(IDbConnection oOpenSqlConnection, IDbTransaction oSqlTransaction, string sStoredProcedureName, params object[] a2oArgumentNameValuePairs)
 		{
 			int iIdentity = 0;
-			SqlCommand oCmd = new SqlCommand(sStoredProcedureName, oOpenSqlConnection);
+			IDbCommand oCmd = oOpenSqlConnection.CreateCommand();
+			oCmd.CommandText = sStoredProcedureName;
 			oCmd.CommandType = CommandType.StoredProcedure;
 			oCmd.Transaction = oSqlTransaction;
 			for (int iArgumentIndex = 1; iArgumentIndex < a2oArgumentNameValuePairs.Length; iArgumentIndex += 2)
 			{
-				oCmd.Parameters.AddWithValue(a2oArgumentNameValuePairs[iArgumentIndex - 1].ToString(), a2oArgumentNameValuePairs[iArgumentIndex]);
+				IDbDataParameter p = oCmd.CreateParameter();
+				p.Direction = ParameterDirection.Input;
+				p.ParameterName = a2oArgumentNameValuePairs[iArgumentIndex - 1].ToString();
+				p.Value = a2oArgumentNameValuePairs[iArgumentIndex];
+				oCmd.Parameters.Add(p);
 			}
-			SqlDataReader oDR = oCmd.ExecuteReader();
+			IDataReader oDR = oCmd.ExecuteReader();
 			if (oDR.Read())
 			{
 				iIdentity = ACASLibraries.Parser.ToInt(oDR[0]);
@@ -292,15 +311,19 @@ namespace ACASLibraries
 		/// oConn = null;
 		/// </code>
 		/// </example>
-		public static SqlDataReader GetDataReaderFromStoredProcedure(SqlConnection oOpenSqlConnection, string sStoredProcedureName, params object[] a2oArgumentNameValuePairs)
+		public static IDataReader GetDataReaderFromStoredProcedure(IDbConnection oOpenSqlConnection, string sStoredProcedureName, params object[] a2oArgumentNameValuePairs)
 		{
-			SqlCommand oCmd = new SqlCommand(sStoredProcedureName, oOpenSqlConnection);
+			IDbCommand oCmd = oOpenSqlConnection.CreateCommand();
+			oCmd.CommandText = sStoredProcedureName;
 			oCmd.CommandType = CommandType.StoredProcedure;
-			for (int iArgumentIndex = 1; iArgumentIndex < a2oArgumentNameValuePairs.Length; iArgumentIndex += 2)
-			{
-				oCmd.Parameters.AddWithValue(a2oArgumentNameValuePairs[iArgumentIndex - 1].ToString(), a2oArgumentNameValuePairs[iArgumentIndex]);
+			for (int iArgumentIndex = 1; iArgumentIndex < a2oArgumentNameValuePairs.Length; iArgumentIndex += 2) {
+				IDbDataParameter p = oCmd.CreateParameter();
+				p.Direction = ParameterDirection.Input;
+				p.ParameterName = a2oArgumentNameValuePairs[iArgumentIndex - 1].ToString();
+				p.Value = a2oArgumentNameValuePairs[iArgumentIndex];
+				oCmd.Parameters.Add(p);
 			}
-			SqlDataReader oDR = oCmd.ExecuteReader();
+			IDataReader oDR = oCmd.ExecuteReader();
 			oCmd.Dispose();
 			oCmd = null;
 			return oDR;
@@ -351,7 +374,7 @@ namespace ACASLibraries
 		/// </summary>
 		/// <param name="DataReader">An open SqlDataReader</param>
 		/// <returns>A NameValueCollection of the DataReader's first record</returns>
-		public static NameValueCollection SqlDataReaderToNameValueCollection(SqlDataReader DataReader)
+		public static NameValueCollection SqlDataReaderToNameValueCollection(IDataReader DataReader)
 		{
 			return SqlDataReaderToNameValueCollection(DataReader, null);
 		}
@@ -361,7 +384,7 @@ namespace ACASLibraries
 		/// <param name="DataReader">An open SqlDataReader</param>
 		/// <param name="NameValueCollection">An existing NameValueCollection to add values to.  Any existing keys will be overwritten.</param>
 		/// <returns>A NameValueCollection of the DataReader's first record</returns>
-		public static NameValueCollection SqlDataReaderToNameValueCollection(SqlDataReader DataReader, NameValueCollection NameValueCollection)
+		public static NameValueCollection SqlDataReaderToNameValueCollection(IDataReader DataReader, NameValueCollection NameValueCollection)
 		{
 			if (NameValueCollection == null)
 			{

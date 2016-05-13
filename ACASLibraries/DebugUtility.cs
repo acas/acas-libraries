@@ -1,6 +1,5 @@
 using System;
 using System.Data;
-using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -19,7 +18,7 @@ namespace ACASLibraries
 		/// </summary>
 		/// <param name="Command">The subject SqlCommand object</param>
 		/// <returns>The command details as text</returns>
-		public static string GetSqlCommandDetails(SqlCommand Command)
+		public static string GetSqlCommandDetails(IDbCommand Command)
 		{
 			return GetSqlCommandDetails(Command, false);
 		}
@@ -29,7 +28,7 @@ namespace ACASLibraries
 		/// <param name="Command">The subject SqlCommand object</param>
 		/// <param name="ReturnAsHtml">When set as True, the command details are returned as Html.  When set as False, the command details are returned as text.</param>
 		/// <returns>The command details as text or Html</returns>
-		public static string GetSqlCommandDetails(SqlCommand Command, bool ReturnAsHtml)
+		public static string GetSqlCommandDetails(IDbCommand Command, bool ReturnAsHtml)
 		{
 			StringBuilder oSB = new StringBuilder();
 			if(Command != null)
@@ -68,7 +67,7 @@ namespace ACASLibraries
 				if(Command.Parameters != null && Command.Parameters.Count > 0)
 				{
 					int iParams = 0;
-					foreach(SqlParameter oParam in Command.Parameters)
+					foreach(IDbDataParameter oParam in Command.Parameters)
 					{
 						if(ReturnAsHtml)
 							oSB.Append("<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;");
